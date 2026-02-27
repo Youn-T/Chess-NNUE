@@ -2,6 +2,6 @@
 /legacy
 /__pycache__
 /dataset
-/labels.npz
-/chessData.csv
-/moves.npz
+# /labels.npz
+# /chessData.csv
+# /moves.npz
