@@ -1,0 +1,7 @@
+/.vscode
+/legacy
+/__pycache__
+/dataset
+/labels.npz
+/chessData.csv
+/moves.npz
