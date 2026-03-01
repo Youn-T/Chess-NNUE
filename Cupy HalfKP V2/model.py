@@ -187,7 +187,8 @@ for epoch in range(EPOCHS):
 
         if (i // BATCH_SIZE) % 200 == 0:
             # Moniteur de santé : % de valeurs activées positivement dans la couche 1
-            alive_ratio = cp.mean(zs[0] > 0)
+            alive_mask = (zs[0] > 0) & (zs[0] <= 1.0)  # Seules les valeurs entre 0 et 1 sont "actives" pour Leaky_Clipped_ReLU
+            alive_ratio = cp.mean(alive_mask)
             print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Neurones Actifs C1: {alive_ratio:.1%}")
 
     print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f} ---")
