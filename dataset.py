@@ -120,8 +120,8 @@ print("Assemblage final...")
 final_moves  = sparse.vstack(all_sparse, format='csr')
 final_labels = np.concatenate(all_labels)
 
-sparse.save_npz('upy HalfKP V1/moves_halfKP_V1.npz', final_moves)
-np.savez('upy HalfKP V1/labels_halfKP_V1.npz', Y=final_labels)
+sparse.save_npz('moves_halfKP_V1.npz', final_moves)
+np.savez('labels_halfKP_V1.npz', Y=final_labels)
 
 dt = time.perf_counter() - t0
 print(f"\nTerminé ! {final_moves.shape[0]:,} positions ({HALFKP_DIM} features) en {dt:.1f}s ({final_moves.shape[0]/dt:,.0f} pos/s)")

@@ -108,8 +108,8 @@ def backward_pass(X, y, activations, zs, weights):
     return [dW1, dW2, dW3, dW4], [db1, db2, db3, db4]
 
 # --- CHARGEMENT DATASET (Simulé ici, utilise tes fichiers) ---
-labels = cp.load('Cupy HalfKP V1/labels_halfKP_V1.npz')["Y"]
-matrix_cpu = sparse.load_npz('Cupy HalfKP V1/moves_halfKP_V1.npz')
+labels = cp.load('labels_halfKP_V1.npz')["Y"]
+matrix_cpu = sparse.load_npz('moves_halfKP_V1.npz')
 moves = cp_sparse.csr_matrix(matrix_cpu)  # Transfert vers GPU
 # --- BOUCLE D'ENTRAÎNEMENT ---
 t = 0 # Compteur global Adam
@@ -187,5 +187,5 @@ for epoch in range(EPOCHS):
 
     print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f} ---")
 
-cp.savez('Cupy HalfKP V1/model_halfKP_V1.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
-print("Modèle sauvegardé sous 'Cupy HalfKP V1/model_halfKP_V1.npz'")
+cp.savez('model_halfKP_V1.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
+print("Modèle sauvegardé sous 'model_halfKP_V1.npz'")
