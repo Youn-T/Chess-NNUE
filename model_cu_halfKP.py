@@ -6,12 +6,12 @@ from scipy import sparse
 import cupyx.scipy.sparse as cp_sparse
 
 # --- HYPERPARAMÈTRES ---
-INPUT_COUNT = 768
+INPUT_COUNT = 45056 #40960
 LAYER_1_SIZE = 512
-LAYER_2_SIZE = 256
-LAYER_3_SIZE = 128
-BATCH_SIZE = 1024 # Précedemment à 128
-EPOCHS = 4 # Réduit pour les tests, à augmenter pour l'entraînement final
+LAYER_2_SIZE = 32
+LAYER_3_SIZE = 32
+BATCH_SIZE = 8192 # Précedemment à 128
+EPOCHS = 10
 LEARNING_RATE = 0.001  # Standard pour Adam
 BETA1 = 0.9
 BETA2 = 0.999
@@ -20,6 +20,17 @@ ALPHA_LEAKY = 0.01  # Pente pour Leaky ReLU
 LAMBDA_L2 = 0.00001 # Précédemment 0.0001, à ajuster selon les résultats
 
 # --- FONCTIONS D'ACTIVATION ---
+
+def Leaky_Clipped_ReLU(x):
+    # On applique la pente leaky en bas et on coupe à 1.0 en haut
+    return cp.where(x > 1.0, 1.0, cp.where(x > 0, x, x * ALPHA_LEAKY))
+
+def Leaky_Clipped_ReLU_derivative(x):
+    # 1.0 entre 0 et 1, ALPHA en dessous de 0, et 0 au-dessus de 1
+    grad = cp.where((x >= 0) & (x <= 1.0), 1.0, 0.0)
+    grad = cp.where(x < 0, ALPHA_LEAKY, grad)
+    return grad
+
 def Leaky_ReLU(x):
     return cp.where(x > 0, x, x * ALPHA_LEAKY)
 
@@ -39,11 +50,11 @@ def clip_gradients(grads, max_norm=1.0):
 # --- INITIALISATION DES POIDS (He Initialization) ---
 W1 = cp.random.randn(INPUT_COUNT, LAYER_1_SIZE) * cp.sqrt(2.0 / 32.0)
 b1 = cp.zeros((1, LAYER_1_SIZE))
-W2 = cp.random.randn(LAYER_1_SIZE, LAYER_2_SIZE)* cp.sqrt(2.0 / 32.0)
+W2 = cp.random.randn(LAYER_1_SIZE, LAYER_2_SIZE) * cp.sqrt(2.0 / LAYER_1_SIZE)
 b2 = cp.zeros((1, LAYER_2_SIZE))
 W3 = cp.random.randn(LAYER_2_SIZE, LAYER_3_SIZE) * cp.sqrt(2.0 / LAYER_2_SIZE)
 b3 = cp.zeros((1, LAYER_3_SIZE))
-W4 = cp.random.randn(LAYER_3_SIZE, 1) * cp.sqrt(2.0 / 32.0)
+W4 = cp.random.randn(LAYER_3_SIZE, 1) * cp.sqrt(2.0 / LAYER_3_SIZE)
 b4 = cp.zeros((1, 1))
 
 # Variables Adam
@@ -56,7 +67,7 @@ def forward_pass(X, weights, biases):
     b1, b2, b3, b4 = biases
     
     Z1 = X.dot(W1) + b1
-    A1 = Leaky_ReLU(Z1)
+    A1 = Leaky_Clipped_ReLU(Z1)
     
     Z2 = cp.dot(A1, W2) + b2
     A2 = Leaky_ReLU(Z2)
@@ -90,20 +101,22 @@ def backward_pass(X, y, activations, zs, weights):
     db2 = cp.sum(dZ2, axis=0, keepdims=True) / m
 
     dA1 = cp.dot(dZ2, W2.T)
-    dZ1 = dA1 * Leaky_ReLU_derivative(Z1)
+    dZ1 = dA1 * Leaky_Clipped_ReLU_derivative(Z1)
     dW1 = X.T.dot(dZ1) / m
     db1 = cp.sum(dZ1, axis=0, keepdims=True) / m
 
     return [dW1, dW2, dW3, dW4], [db1, db2, db3, db4]
 
 # --- CHARGEMENT DATASET (Simulé ici, utilise tes fichiers) ---
-labels = cp.load('labels.npz')["Y"]
-matrix_cpu = sparse.load_npz('moves.npz')
+labels = cp.load('labels_halfKP.npz')["Y"]
+matrix_cpu = sparse.load_npz('moves_halfKP.npz')
 moves = cp_sparse.csr_matrix(matrix_cpu)  # Transfert vers GPU
 # --- BOUCLE D'ENTRAÎNEMENT ---
 t = 0 # Compteur global Adam
 weights = [W1, W2, W3, W4]
 biases = [b1, b2, b3, b4]
+
+moves = moves.tocsc()
 
 for epoch in range(EPOCHS):
     indices = cp.arange(moves.shape[0])
@@ -114,7 +127,7 @@ for epoch in range(EPOCHS):
         t += 1
         current_lr = LEARNING_RATE * (0.1 ** (t / 150000))
         batch_idx = indices[i : i + BATCH_SIZE]
-        X_batch = moves[batch_idx].toarray()
+        X_batch = moves[batch_idx]
         y_batch = labels[batch_idx].reshape(-1, 1)
 
         # Forward
@@ -129,8 +142,31 @@ for epoch in range(EPOCHS):
         dWs, dbs = backward_pass(X_batch, y_batch, activations, zs, weights)
         dWs = clip_gradients(dWs)
         dbs = clip_gradients(dbs)
+        
         # Adam Update
-        for j in range(len(weights)):
+        # ==========================================================
+        # 1. ADAM SPARSE POUR LA COUCHE 1 (L'Accumulateur HalfKP)
+        # ==========================================================
+        # 1. Mise à jour des moments (Dense)
+        mW[0] = BETA1 * mW[0] + (1 - BETA1) * dWs[0]
+        vW[0] = BETA2 * vW[0] + (1 - BETA2) * (dWs[0]**2)
+        mb[0] = BETA1 * mb[0] + (1 - BETA1) * dbs[0] # <--- NE PAS OUBLIER
+        vb[0] = BETA2 * vb[0] + (1 - BETA2) * (dbs[0]**2) # <--- NE PAS OUBLIER
+
+        # 2. Correction du biais (Bias Correction)
+        mw_hat_0 = mW[0] / (1 - BETA1**t)
+        vw_hat_0 = vW[0] / (1 - BETA2**t)
+        mb_hat_0 = mb[0] / (1 - BETA1**t)
+        vb_hat_0 = vb[0] / (1 - BETA2**t)
+
+        # 3. Mise à jour des poids et biais
+        weights[0] -= current_lr * (mw_hat_0 / (cp.sqrt(vw_hat_0) + EPSILON) + LAMBDA_L2 * weights[0])
+        biases[0] -= current_lr * (mb_hat_0 / (cp.sqrt(vb_hat_0) + EPSILON))
+
+        # ==========================================================
+        # 2. ADAM DENSE STANDARD POUR LES COUCHES 2, 3 ET 4
+        # ==========================================================
+        for j in range(1, len(weights)):
             mW[j] = BETA1 * mW[j] + (1 - BETA1) * dWs[j]
             mb[j] = BETA1 * mb[j] + (1 - BETA1) * dbs[j]
             vW[j] = BETA2 * vW[j] + (1 - BETA2) * (dWs[j]**2)
@@ -150,6 +186,6 @@ for epoch in range(EPOCHS):
             print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Neurones Actifs C1: {alive_ratio:.1%}")
 
     print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f} ---")
-    
-cp.savez('model_cu.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
-print("Modèle sauvegardé sous 'model_cu.npz'")
+
+cp.savez('model_halfKP.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
+print("Modèle sauvegardé sous 'model_halfKP.npz'")
