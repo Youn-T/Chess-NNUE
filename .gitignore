@@ -1,8 +1,8 @@
 /.vscode
-/legacy
+# /legacy
 /__pycache__
-/dataset
+# /dataset
 # /labels.npz
 # /chessData.csv
 # /moves.npz
-/test.py
+# /test.py
