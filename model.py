@@ -11,7 +11,7 @@ LAYER_1_SIZE = 512
 LAYER_2_SIZE = 32
 LAYER_3_SIZE = 32
 BATCH_SIZE = 8192 # Précedemment à 128
-EPOCHS = 10
+EPOCHS = 30
 LEARNING_RATE = 0.001  # Standard pour Adam
 BETA1 = 0.9
 BETA2 = 0.999
@@ -121,9 +121,16 @@ for epoch in range(EPOCHS):
     cp.random.shuffle(indices)
     total_loss = 0
 
+    if epoch < 15:
+        current_lr = LEARNING_RATE
+    elif epoch < 25:
+        current_lr = LEARNING_RATE * 0.1
+    else:
+        current_lr = LEARNING_RATE * 0.01
+
     for i in range(0, len(indices), BATCH_SIZE):
         t += 1
-        current_lr = LEARNING_RATE * (0.1 ** (t / 150000))
+        # current_lr = LEARNING_RATE * (0.1 ** (t / 150000))
         batch_idx = indices[i : i + BATCH_SIZE]
         X_batch = moves[batch_idx]
         y_batch = labels[batch_idx].reshape(-1, 1)
@@ -182,7 +189,8 @@ for epoch in range(EPOCHS):
 
         if (i // BATCH_SIZE) % 200 == 0:
             # Moniteur de santé : % de valeurs activées positivement dans la couche 1
-            alive_ratio = cp.mean(zs[0] > 0)
+            alive_mask = (zs[0] > 0) & (zs[0] <= 1.0)  # Neurones actifs dans la plage de Leaky_Clipped_ReLU
+            alive_ratio = cp.mean(alive_mask)
             print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Neurones Actifs C1: {alive_ratio:.1%}")
 
     print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f} ---")
