@@ -5,6 +5,8 @@ import chess
 from scipy import sparse
 import cupyx.scipy.sparse as cp_sparse
 
+import time
+
 # --- HYPERPARAMÈTRES ---
 INPUT_COUNT = 40960
 LAYER_1_SIZE = 512
@@ -116,6 +118,9 @@ t = 0 # Compteur global Adam
 weights = [W1, W2, W3, W4]
 biases = [b1, b2, b3, b4]
 
+t0 = time.perf_counter()
+tpast = t0
+
 for epoch in range(EPOCHS):
     indices = cp.arange(moves.shape[0])
     cp.random.shuffle(indices)
@@ -188,12 +193,14 @@ for epoch in range(EPOCHS):
             biases[j] -= current_lr * (mb_hat / (cp.sqrt(vb_hat) + EPSILON))
 
         if (i // BATCH_SIZE) % 200 == 0:
+            elapsed = time.perf_counter() - t0
             # Moniteur de santé : % de valeurs activées positivement dans la couche 1
             alive_mask = (zs[0] > 0) & (zs[0] <= 1.0)  # Neurones actifs dans la plage de Leaky_Clipped_ReLU
             alive_ratio = cp.mean(alive_mask)
-            print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Neurones Actifs C1: {alive_ratio:.1%}")
+            print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Neurones Actifs C1: {alive_ratio:.1%} | Temps écoulé: {elapsed:.2f}s | Durée de calcul: {(elapsed - tpast)*1000:.1f}ms")
+            tpast = elapsed
 
-    print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f} ---")
+    print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f}, Temps écoulé: {elapsed:.2f}s ---")
 
 cp.savez('model_halfKP_V1.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
 print("Modèle sauvegardé sous 'model_halfKP_V1.npz'")

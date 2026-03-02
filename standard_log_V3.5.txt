@@ -1,0 +1,271 @@
+Epoch 0, Batch 0 | Loss: 0.7141 | Neurones Actifs C1: 33.1% | Temps écoulé: 0.69s | Durée de calcul: -50907365.4ms
+Epoch 0, Batch 200 | Loss: 0.6378 | Neurones Actifs C1: 32.9% | Temps écoulé: 13.63s | Durée de calcul: 12931.6ms
+Epoch 0, Batch 400 | Loss: 0.6213 | Neurones Actifs C1: 33.1% | Temps écoulé: 26.57s | Durée de calcul: 12947.3ms
+Epoch 0, Batch 600 | Loss: 0.6101 | Neurones Actifs C1: 32.9% | Temps écoulé: 39.52s | Durée de calcul: 12943.2ms
+Epoch 0, Batch 800 | Loss: 0.6060 | Neurones Actifs C1: 33.1% | Temps écoulé: 52.46s | Durée de calcul: 12948.7ms
+Epoch 0, Batch 1000 | Loss: 0.5985 | Neurones Actifs C1: 33.2% | Temps écoulé: 65.42s | Durée de calcul: 12958.7ms
+Epoch 0, Batch 1200 | Loss: 0.5986 | Neurones Actifs C1: 33.2% | Temps écoulé: 78.38s | Durée de calcul: 12953.7ms
+Epoch 0, Batch 1400 | Loss: 0.5934 | Neurones Actifs C1: 33.1% | Temps écoulé: 91.33s | Durée de calcul: 12950.9ms
+--- Fin Epoch 0, Moyenne Loss: 0.6126, Temps écoulé: 91.33s ---
+Epoch 1, Batch 0 | Loss: 0.5739 | Neurones Actifs C1: 33.2% | Temps écoulé: 103.15s | Durée de calcul: 11819.3ms
+Epoch 1, Batch 200 | Loss: 0.5652 | Neurones Actifs C1: 33.1% | Temps écoulé: 116.10s | Durée de calcul: 12951.6ms
+Epoch 1, Batch 400 | Loss: 0.5673 | Neurones Actifs C1: 33.1% | Temps écoulé: 129.08s | Durée de calcul: 12978.7ms
+Epoch 1, Batch 600 | Loss: 0.5600 | Neurones Actifs C1: 33.1% | Temps écoulé: 142.03s | Durée de calcul: 12956.7ms
+Epoch 1, Batch 800 | Loss: 0.5571 | Neurones Actifs C1: 33.1% | Temps écoulé: 155.00s | Durée de calcul: 12961.4ms
+Epoch 1, Batch 1000 | Loss: 0.5601 | Neurones Actifs C1: 33.1% | Temps écoulé: 167.95s | Durée de calcul: 12953.5ms
+Epoch 1, Batch 1200 | Loss: 0.5549 | Neurones Actifs C1: 33.3% | Temps écoulé: 180.91s | Durée de calcul: 12960.6ms
+Epoch 1, Batch 1400 | Loss: 0.5508 | Neurones Actifs C1: 33.3% | Temps écoulé: 193.85s | Durée de calcul: 12944.9ms
+--- Fin Epoch 1, Moyenne Loss: 0.5613, Temps écoulé: 193.85s ---
+Epoch 2, Batch 0 | Loss: 0.5330 | Neurones Actifs C1: 33.4% | Temps écoulé: 205.66s | Durée de calcul: 11804.4ms
+Epoch 2, Batch 200 | Loss: 0.5303 | Neurones Actifs C1: 33.5% | Temps écoulé: 218.62s | Durée de calcul: 12960.2ms
+Epoch 2, Batch 400 | Loss: 0.5298 | Neurones Actifs C1: 33.6% | Temps écoulé: 231.58s | Durée de calcul: 12961.0ms
+Epoch 2, Batch 600 | Loss: 0.5319 | Neurones Actifs C1: 33.4% | Temps écoulé: 244.53s | Durée de calcul: 12954.3ms
+Epoch 2, Batch 800 | Loss: 0.5352 | Neurones Actifs C1: 33.6% | Temps écoulé: 257.51s | Durée de calcul: 12977.1ms
+Epoch 2, Batch 1000 | Loss: 0.5289 | Neurones Actifs C1: 33.8% | Temps écoulé: 270.49s | Durée de calcul: 12978.2ms
+Epoch 2, Batch 1200 | Loss: 0.5282 | Neurones Actifs C1: 33.9% | Temps écoulé: 283.45s | Durée de calcul: 12959.2ms
+Epoch 2, Batch 1400 | Loss: 0.5197 | Neurones Actifs C1: 34.0% | Temps écoulé: 296.41s | Durée de calcul: 12964.2ms
+--- Fin Epoch 2, Moyenne Loss: 0.5311, Temps écoulé: 296.41s ---
+Epoch 3, Batch 0 | Loss: 0.5115 | Neurones Actifs C1: 34.1% | Temps écoulé: 308.22s | Durée de calcul: 11808.2ms
+Epoch 3, Batch 200 | Loss: 0.5093 | Neurones Actifs C1: 34.1% | Temps écoulé: 321.18s | Durée de calcul: 12957.3ms
+Epoch 3, Batch 400 | Loss: 0.5133 | Neurones Actifs C1: 34.1% | Temps écoulé: 334.14s | Durée de calcul: 12958.1ms
+Epoch 3, Batch 600 | Loss: 0.5149 | Neurones Actifs C1: 34.1% | Temps écoulé: 347.09s | Durée de calcul: 12951.8ms
+Epoch 3, Batch 800 | Loss: 0.5106 | Neurones Actifs C1: 34.2% | Temps écoulé: 360.04s | Durée de calcul: 12954.2ms
+Epoch 3, Batch 1000 | Loss: 0.5130 | Neurones Actifs C1: 34.2% | Temps écoulé: 372.99s | Durée de calcul: 12949.2ms
+Epoch 3, Batch 1200 | Loss: 0.5109 | Neurones Actifs C1: 34.3% | Temps écoulé: 385.94s | Durée de calcul: 12951.4ms
+Epoch 3, Batch 1400 | Loss: 0.5106 | Neurones Actifs C1: 34.2% | Temps écoulé: 398.89s | Durée de calcul: 12943.8ms
+--- Fin Epoch 3, Moyenne Loss: 0.5127, Temps écoulé: 398.89s ---
+Epoch 4, Batch 0 | Loss: 0.4952 | Neurones Actifs C1: 34.3% | Temps écoulé: 410.68s | Durée de calcul: 11797.4ms
+Epoch 4, Batch 200 | Loss: 0.4990 | Neurones Actifs C1: 34.4% | Temps écoulé: 423.64s | Durée de calcul: 12951.2ms
+Epoch 4, Batch 400 | Loss: 0.4996 | Neurones Actifs C1: 34.4% | Temps écoulé: 436.59s | Durée de calcul: 12951.6ms
+Epoch 4, Batch 600 | Loss: 0.5039 | Neurones Actifs C1: 34.3% | Temps écoulé: 449.54s | Durée de calcul: 12954.1ms
+Epoch 4, Batch 800 | Loss: 0.4957 | Neurones Actifs C1: 34.5% | Temps écoulé: 462.50s | Durée de calcul: 12955.4ms
+Epoch 4, Batch 1000 | Loss: 0.5013 | Neurones Actifs C1: 34.5% | Temps écoulé: 475.46s | Durée de calcul: 12961.1ms
+Epoch 4, Batch 1200 | Loss: 0.5035 | Neurones Actifs C1: 34.4% | Temps écoulé: 488.42s | Durée de calcul: 12957.7ms
+Epoch 4, Batch 1400 | Loss: 0.5051 | Neurones Actifs C1: 34.4% | Temps écoulé: 501.37s | Durée de calcul: 12955.2ms
+--- Fin Epoch 4, Moyenne Loss: 0.5011, Temps écoulé: 501.37s ---
+Epoch 5, Batch 0 | Loss: 0.4852 | Neurones Actifs C1: 34.6% | Temps écoulé: 513.17s | Durée de calcul: 11796.6ms
+Epoch 5, Batch 200 | Loss: 0.4915 | Neurones Actifs C1: 34.6% | Temps écoulé: 526.11s | Durée de calcul: 12946.3ms
+Epoch 5, Batch 400 | Loss: 0.4933 | Neurones Actifs C1: 34.5% | Temps écoulé: 539.06s | Durée de calcul: 12950.7ms
+Epoch 5, Batch 600 | Loss: 0.4982 | Neurones Actifs C1: 34.5% | Temps écoulé: 552.02s | Durée de calcul: 12960.1ms
+Epoch 5, Batch 800 | Loss: 0.4970 | Neurones Actifs C1: 34.5% | Temps écoulé: 564.97s | Durée de calcul: 12948.3ms
+Epoch 5, Batch 1000 | Loss: 0.4962 | Neurones Actifs C1: 34.3% | Temps écoulé: 577.93s | Durée de calcul: 12954.0ms
+Epoch 5, Batch 1200 | Loss: 0.4893 | Neurones Actifs C1: 34.5% | Temps écoulé: 590.87s | Durée de calcul: 12946.4ms
+Epoch 5, Batch 1400 | Loss: 0.4945 | Neurones Actifs C1: 34.5% | Temps écoulé: 603.83s | Durée de calcul: 12955.0ms
+--- Fin Epoch 5, Moyenne Loss: 0.4933, Temps écoulé: 603.83s ---
+Epoch 6, Batch 0 | Loss: 0.4828 | Neurones Actifs C1: 34.5% | Temps écoulé: 615.62s | Durée de calcul: 11791.3ms
+Epoch 6, Batch 200 | Loss: 0.4838 | Neurones Actifs C1: 34.5% | Temps écoulé: 628.57s | Durée de calcul: 12950.8ms
+Epoch 6, Batch 400 | Loss: 0.4809 | Neurones Actifs C1: 34.4% | Temps écoulé: 641.51s | Durée de calcul: 12944.9ms
+Epoch 6, Batch 600 | Loss: 0.4879 | Neurones Actifs C1: 34.5% | Temps écoulé: 654.47s | Durée de calcul: 12958.0ms
+Epoch 6, Batch 800 | Loss: 0.4846 | Neurones Actifs C1: 34.3% | Temps écoulé: 667.43s | Durée de calcul: 12953.6ms
+Epoch 6, Batch 1000 | Loss: 0.4847 | Neurones Actifs C1: 34.4% | Temps écoulé: 680.38s | Durée de calcul: 12953.3ms
+Epoch 6, Batch 1200 | Loss: 0.4765 | Neurones Actifs C1: 34.5% | Temps écoulé: 693.34s | Durée de calcul: 12959.0ms
+Epoch 6, Batch 1400 | Loss: 0.4930 | Neurones Actifs C1: 34.3% | Temps écoulé: 706.30s | Durée de calcul: 12957.4ms
+--- Fin Epoch 6, Moyenne Loss: 0.4874, Temps écoulé: 706.30s ---
+Epoch 7, Batch 0 | Loss: 0.4778 | Neurones Actifs C1: 34.5% | Temps écoulé: 718.10s | Durée de calcul: 11801.5ms
+Epoch 7, Batch 200 | Loss: 0.4817 | Neurones Actifs C1: 34.4% | Temps écoulé: 731.06s | Durée de calcul: 12959.8ms
+Epoch 7, Batch 400 | Loss: 0.4861 | Neurones Actifs C1: 34.2% | Temps écoulé: 744.01s | Durée de calcul: 12955.1ms
+Epoch 7, Batch 600 | Loss: 0.4842 | Neurones Actifs C1: 34.3% | Temps écoulé: 756.97s | Durée de calcul: 12958.4ms
+Epoch 7, Batch 800 | Loss: 0.4812 | Neurones Actifs C1: 34.2% | Temps écoulé: 769.92s | Durée de calcul: 12949.2ms
+Epoch 7, Batch 1000 | Loss: 0.4821 | Neurones Actifs C1: 34.2% | Temps écoulé: 782.87s | Durée de calcul: 12953.8ms
+Epoch 7, Batch 1200 | Loss: 0.4841 | Neurones Actifs C1: 34.3% | Temps écoulé: 795.83s | Durée de calcul: 12960.3ms
+Epoch 7, Batch 1400 | Loss: 0.4804 | Neurones Actifs C1: 34.3% | Temps écoulé: 808.79s | Durée de calcul: 12956.9ms
+--- Fin Epoch 7, Moyenne Loss: 0.4827, Temps écoulé: 808.79s ---
+Epoch 8, Batch 0 | Loss: 0.4724 | Neurones Actifs C1: 34.2% | Temps écoulé: 820.59s | Durée de calcul: 11796.0ms
+Epoch 8, Batch 200 | Loss: 0.4760 | Neurones Actifs C1: 34.3% | Temps écoulé: 833.58s | Durée de calcul: 12997.1ms
+Epoch 8, Batch 400 | Loss: 0.4813 | Neurones Actifs C1: 34.2% | Temps écoulé: 846.54s | Durée de calcul: 12954.2ms
+Epoch 8, Batch 600 | Loss: 0.4757 | Neurones Actifs C1: 34.2% | Temps écoulé: 859.50s | Durée de calcul: 12962.2ms
+Epoch 8, Batch 800 | Loss: 0.4728 | Neurones Actifs C1: 34.2% | Temps écoulé: 872.46s | Durée de calcul: 12957.6ms
+Epoch 8, Batch 1000 | Loss: 0.4817 | Neurones Actifs C1: 34.0% | Temps écoulé: 885.41s | Durée de calcul: 12954.3ms
+Epoch 8, Batch 1200 | Loss: 0.4806 | Neurones Actifs C1: 34.3% | Temps écoulé: 898.37s | Durée de calcul: 12953.7ms
+Epoch 8, Batch 1400 | Loss: 0.4803 | Neurones Actifs C1: 34.0% | Temps écoulé: 911.32s | Durée de calcul: 12957.1ms
+--- Fin Epoch 8, Moyenne Loss: 0.4789, Temps écoulé: 911.32s ---
+Epoch 9, Batch 0 | Loss: 0.4755 | Neurones Actifs C1: 34.0% | Temps écoulé: 923.13s | Durée de calcul: 11805.9ms
+Epoch 9, Batch 200 | Loss: 0.4733 | Neurones Actifs C1: 34.1% | Temps écoulé: 936.08s | Durée de calcul: 12953.8ms
+Epoch 9, Batch 400 | Loss: 0.4784 | Neurones Actifs C1: 34.1% | Temps écoulé: 949.03s | Durée de calcul: 12951.9ms
+Epoch 9, Batch 600 | Loss: 0.4735 | Neurones Actifs C1: 34.1% | Temps écoulé: 961.99s | Durée de calcul: 12956.7ms
+Epoch 9, Batch 800 | Loss: 0.4751 | Neurones Actifs C1: 34.0% | Temps écoulé: 974.95s | Durée de calcul: 12955.2ms
+Epoch 9, Batch 1000 | Loss: 0.4752 | Neurones Actifs C1: 34.0% | Temps écoulé: 987.90s | Durée de calcul: 12954.5ms
+Epoch 9, Batch 1200 | Loss: 0.4806 | Neurones Actifs C1: 34.0% | Temps écoulé: 1000.85s | Durée de calcul: 12951.7ms
+Epoch 9, Batch 1400 | Loss: 0.4741 | Neurones Actifs C1: 34.0% | Temps écoulé: 1013.80s | Durée de calcul: 12950.7ms
+--- Fin Epoch 9, Moyenne Loss: 0.4757, Temps écoulé: 1013.80s ---
+Epoch 10, Batch 0 | Loss: 0.4681 | Neurones Actifs C1: 33.9% | Temps écoulé: 1025.60s | Durée de calcul: 11798.6ms
+Epoch 10, Batch 200 | Loss: 0.4693 | Neurones Actifs C1: 34.0% | Temps écoulé: 1038.56s | Durée de calcul: 12953.1ms
+Epoch 10, Batch 400 | Loss: 0.4700 | Neurones Actifs C1: 33.9% | Temps écoulé: 1051.51s | Durée de calcul: 12952.1ms
+Epoch 10, Batch 600 | Loss: 0.4743 | Neurones Actifs C1: 33.8% | Temps écoulé: 1064.45s | Durée de calcul: 12944.5ms
+Epoch 10, Batch 800 | Loss: 0.4751 | Neurones Actifs C1: 34.0% | Temps écoulé: 1077.40s | Durée de calcul: 12949.6ms
+Epoch 10, Batch 1000 | Loss: 0.4763 | Neurones Actifs C1: 33.9% | Temps écoulé: 1090.35s | Durée de calcul: 12951.7ms
+Epoch 10, Batch 1200 | Loss: 0.4760 | Neurones Actifs C1: 33.8% | Temps écoulé: 1103.31s | Durée de calcul: 12956.8ms
+Epoch 10, Batch 1400 | Loss: 0.4769 | Neurones Actifs C1: 33.7% | Temps écoulé: 1116.28s | Durée de calcul: 12965.9ms
+--- Fin Epoch 10, Moyenne Loss: 0.4731, Temps écoulé: 1116.28s ---
+Epoch 11, Batch 0 | Loss: 0.4689 | Neurones Actifs C1: 33.8% | Temps écoulé: 1128.07s | Durée de calcul: 11793.5ms
+Epoch 11, Batch 200 | Loss: 0.4704 | Neurones Actifs C1: 33.7% | Temps écoulé: 1141.03s | Durée de calcul: 12956.1ms
+Epoch 11, Batch 400 | Loss: 0.4741 | Neurones Actifs C1: 33.7% | Temps écoulé: 1153.98s | Durée de calcul: 12952.7ms
+Epoch 11, Batch 600 | Loss: 0.4667 | Neurones Actifs C1: 33.8% | Temps écoulé: 1166.93s | Durée de calcul: 12955.4ms
+Epoch 11, Batch 800 | Loss: 0.4687 | Neurones Actifs C1: 33.8% | Temps écoulé: 1179.88s | Durée de calcul: 12949.8ms
+Epoch 11, Batch 1000 | Loss: 0.4714 | Neurones Actifs C1: 33.7% | Temps écoulé: 1192.84s | Durée de calcul: 12952.6ms
+Epoch 11, Batch 1200 | Loss: 0.4760 | Neurones Actifs C1: 33.7% | Temps écoulé: 1205.79s | Durée de calcul: 12953.3ms
+Epoch 11, Batch 1400 | Loss: 0.4651 | Neurones Actifs C1: 33.6% | Temps écoulé: 1218.74s | Durée de calcul: 12951.2ms
+--- Fin Epoch 11, Moyenne Loss: 0.4708, Temps écoulé: 1218.74s ---
+Epoch 12, Batch 0 | Loss: 0.4683 | Neurones Actifs C1: 33.6% | Temps écoulé: 1230.54s | Durée de calcul: 11795.4ms
+Epoch 12, Batch 200 | Loss: 0.4644 | Neurones Actifs C1: 33.6% | Temps écoulé: 1243.49s | Durée de calcul: 12953.3ms
+Epoch 12, Batch 400 | Loss: 0.4683 | Neurones Actifs C1: 33.6% | Temps écoulé: 1256.44s | Durée de calcul: 12955.1ms
+Epoch 12, Batch 600 | Loss: 0.4668 | Neurones Actifs C1: 33.6% | Temps écoulé: 1269.41s | Durée de calcul: 12962.6ms
+Epoch 12, Batch 800 | Loss: 0.4622 | Neurones Actifs C1: 33.4% | Temps écoulé: 1282.36s | Durée de calcul: 12956.0ms
+Epoch 12, Batch 1000 | Loss: 0.4711 | Neurones Actifs C1: 33.5% | Temps écoulé: 1295.32s | Durée de calcul: 12961.7ms
+Epoch 12, Batch 1200 | Loss: 0.4713 | Neurones Actifs C1: 33.6% | Temps écoulé: 1308.28s | Durée de calcul: 12956.3ms
+Epoch 12, Batch 1400 | Loss: 0.4687 | Neurones Actifs C1: 33.5% | Temps écoulé: 1321.24s | Durée de calcul: 12958.3ms
+--- Fin Epoch 12, Moyenne Loss: 0.4688, Temps écoulé: 1321.24s ---
+Epoch 13, Batch 0 | Loss: 0.4711 | Neurones Actifs C1: 33.4% | Temps écoulé: 1333.06s | Durée de calcul: 11822.2ms
+Epoch 13, Batch 200 | Loss: 0.4678 | Neurones Actifs C1: 33.4% | Temps écoulé: 1346.00s | Durée de calcul: 12934.3ms
+Epoch 13, Batch 400 | Loss: 0.4642 | Neurones Actifs C1: 33.5% | Temps écoulé: 1358.95s | Durée de calcul: 12956.9ms
+Epoch 13, Batch 600 | Loss: 0.4677 | Neurones Actifs C1: 33.5% | Temps écoulé: 1371.90s | Durée de calcul: 12950.6ms
+Epoch 13, Batch 800 | Loss: 0.4671 | Neurones Actifs C1: 33.3% | Temps écoulé: 1384.86s | Durée de calcul: 12958.5ms
+Epoch 13, Batch 1000 | Loss: 0.4702 | Neurones Actifs C1: 33.4% | Temps écoulé: 1397.81s | Durée de calcul: 12947.9ms
+Epoch 13, Batch 1200 | Loss: 0.4632 | Neurones Actifs C1: 33.3% | Temps écoulé: 1410.78s | Durée de calcul: 12974.0ms
+Epoch 13, Batch 1400 | Loss: 0.4638 | Neurones Actifs C1: 33.3% | Temps écoulé: 1423.74s | Durée de calcul: 12954.9ms
+--- Fin Epoch 13, Moyenne Loss: 0.4670, Temps écoulé: 1423.74s ---
+Epoch 14, Batch 0 | Loss: 0.4629 | Neurones Actifs C1: 33.3% | Temps écoulé: 1435.54s | Durée de calcul: 11798.3ms
+Epoch 14, Batch 200 | Loss: 0.4692 | Neurones Actifs C1: 33.3% | Temps écoulé: 1448.49s | Durée de calcul: 12956.5ms
+Epoch 14, Batch 400 | Loss: 0.4600 | Neurones Actifs C1: 33.3% | Temps écoulé: 1461.45s | Durée de calcul: 12956.6ms
+Epoch 14, Batch 600 | Loss: 0.4671 | Neurones Actifs C1: 33.2% | Temps écoulé: 1474.41s | Durée de calcul: 12961.1ms
+Epoch 14, Batch 800 | Loss: 0.4689 | Neurones Actifs C1: 33.2% | Temps écoulé: 1487.36s | Durée de calcul: 12949.8ms
+Epoch 14, Batch 1000 | Loss: 0.4677 | Neurones Actifs C1: 33.1% | Temps écoulé: 1500.32s | Durée de calcul: 12962.3ms
+Epoch 14, Batch 1200 | Loss: 0.4678 | Neurones Actifs C1: 33.2% | Temps écoulé: 1513.28s | Durée de calcul: 12953.5ms
+Epoch 14, Batch 1400 | Loss: 0.4650 | Neurones Actifs C1: 33.1% | Temps écoulé: 1526.23s | Durée de calcul: 12955.6ms
+--- Fin Epoch 14, Moyenne Loss: 0.4655, Temps écoulé: 1526.23s ---
+Epoch 15, Batch 0 | Loss: 0.4612 | Neurones Actifs C1: 33.1% | Temps écoulé: 1538.03s | Durée de calcul: 11797.9ms
+Epoch 15, Batch 200 | Loss: 0.4528 | Neurones Actifs C1: 33.2% | Temps écoulé: 1550.98s | Durée de calcul: 12954.8ms
+Epoch 15, Batch 400 | Loss: 0.4674 | Neurones Actifs C1: 33.2% | Temps écoulé: 1563.94s | Durée de calcul: 12953.7ms
+Epoch 15, Batch 600 | Loss: 0.4576 | Neurones Actifs C1: 33.2% | Temps écoulé: 1576.89s | Durée de calcul: 12947.1ms
+Epoch 15, Batch 800 | Loss: 0.4541 | Neurones Actifs C1: 33.2% | Temps écoulé: 1589.84s | Durée de calcul: 12956.7ms
+Epoch 15, Batch 1000 | Loss: 0.4617 | Neurones Actifs C1: 33.1% | Temps écoulé: 1602.79s | Durée de calcul: 12952.2ms
+Epoch 15, Batch 1200 | Loss: 0.4572 | Neurones Actifs C1: 33.2% | Temps écoulé: 1615.75s | Durée de calcul: 12957.6ms
+Epoch 15, Batch 1400 | Loss: 0.4649 | Neurones Actifs C1: 33.2% | Temps écoulé: 1628.71s | Durée de calcul: 12956.5ms
+--- Fin Epoch 15, Moyenne Loss: 0.4581, Temps écoulé: 1628.71s ---
+Epoch 16, Batch 0 | Loss: 0.4535 | Neurones Actifs C1: 33.2% | Temps écoulé: 1640.51s | Durée de calcul: 11805.5ms
+Epoch 16, Batch 200 | Loss: 0.4538 | Neurones Actifs C1: 33.2% | Temps écoulé: 1653.48s | Durée de calcul: 12962.8ms
+Epoch 16, Batch 400 | Loss: 0.4505 | Neurones Actifs C1: 33.2% | Temps écoulé: 1666.44s | Durée de calcul: 12962.0ms
+Epoch 16, Batch 600 | Loss: 0.4573 | Neurones Actifs C1: 33.2% | Temps écoulé: 1679.40s | Durée de calcul: 12961.3ms
+Epoch 16, Batch 800 | Loss: 0.4541 | Neurones Actifs C1: 33.2% | Temps écoulé: 1692.36s | Durée de calcul: 12956.3ms
+Epoch 16, Batch 1000 | Loss: 0.4583 | Neurones Actifs C1: 33.2% | Temps écoulé: 1705.32s | Durée de calcul: 12965.3ms
+Epoch 16, Batch 1200 | Loss: 0.4532 | Neurones Actifs C1: 33.1% | Temps écoulé: 1718.28s | Durée de calcul: 12957.5ms
+Epoch 16, Batch 1400 | Loss: 0.4573 | Neurones Actifs C1: 33.2% | Temps écoulé: 1731.24s | Durée de calcul: 12956.5ms
+--- Fin Epoch 16, Moyenne Loss: 0.4569, Temps écoulé: 1731.24s ---
+Epoch 17, Batch 0 | Loss: 0.4625 | Neurones Actifs C1: 33.2% | Temps écoulé: 1743.04s | Durée de calcul: 11803.4ms
+Epoch 17, Batch 200 | Loss: 0.4557 | Neurones Actifs C1: 33.1% | Temps écoulé: 1755.99s | Durée de calcul: 12954.2ms
+Epoch 17, Batch 400 | Loss: 0.4585 | Neurones Actifs C1: 33.2% | Temps écoulé: 1768.95s | Durée de calcul: 12960.8ms
+Epoch 17, Batch 600 | Loss: 0.4549 | Neurones Actifs C1: 33.2% | Temps écoulé: 1781.91s | Durée de calcul: 12956.9ms
+Epoch 17, Batch 800 | Loss: 0.4608 | Neurones Actifs C1: 33.1% | Temps écoulé: 1794.87s | Durée de calcul: 12959.4ms
+Epoch 17, Batch 1000 | Loss: 0.4554 | Neurones Actifs C1: 33.2% | Temps écoulé: 1807.83s | Durée de calcul: 12954.6ms
+Epoch 17, Batch 1200 | Loss: 0.4603 | Neurones Actifs C1: 33.2% | Temps écoulé: 1820.79s | Durée de calcul: 12960.0ms
+Epoch 17, Batch 1400 | Loss: 0.4558 | Neurones Actifs C1: 33.3% | Temps écoulé: 1833.75s | Durée de calcul: 12960.0ms
+--- Fin Epoch 17, Moyenne Loss: 0.4563, Temps écoulé: 1833.75s ---
+Epoch 18, Batch 0 | Loss: 0.4561 | Neurones Actifs C1: 33.2% | Temps écoulé: 1845.55s | Durée de calcul: 11803.6ms
+Epoch 18, Batch 200 | Loss: 0.4554 | Neurones Actifs C1: 33.1% | Temps écoulé: 1858.50s | Durée de calcul: 12956.0ms
+Epoch 18, Batch 400 | Loss: 0.4545 | Neurones Actifs C1: 33.1% | Temps écoulé: 1871.46s | Durée de calcul: 12954.9ms
+Epoch 18, Batch 600 | Loss: 0.4619 | Neurones Actifs C1: 33.2% | Temps écoulé: 1884.42s | Durée de calcul: 12957.3ms
+Epoch 18, Batch 800 | Loss: 0.4565 | Neurones Actifs C1: 33.2% | Temps écoulé: 1897.37s | Durée de calcul: 12955.6ms
+Epoch 18, Batch 1000 | Loss: 0.4563 | Neurones Actifs C1: 33.2% | Temps écoulé: 1910.33s | Durée de calcul: 12957.9ms
+Epoch 18, Batch 1200 | Loss: 0.4568 | Neurones Actifs C1: 33.2% | Temps écoulé: 1923.28s | Durée de calcul: 12949.9ms
+Epoch 18, Batch 1400 | Loss: 0.4552 | Neurones Actifs C1: 33.2% | Temps écoulé: 1936.24s | Durée de calcul: 12958.0ms
+--- Fin Epoch 18, Moyenne Loss: 0.4558, Temps écoulé: 1936.24s ---
+Epoch 19, Batch 0 | Loss: 0.4631 | Neurones Actifs C1: 33.3% | Temps écoulé: 1948.05s | Durée de calcul: 11808.4ms
+Epoch 19, Batch 200 | Loss: 0.4524 | Neurones Actifs C1: 33.2% | Temps écoulé: 1961.00s | Durée de calcul: 12956.0ms
+Epoch 19, Batch 400 | Loss: 0.4551 | Neurones Actifs C1: 33.2% | Temps écoulé: 1973.95s | Durée de calcul: 12951.0ms
+Epoch 19, Batch 600 | Loss: 0.4565 | Neurones Actifs C1: 33.3% | Temps écoulé: 1986.91s | Durée de calcul: 12955.5ms
+Epoch 19, Batch 800 | Loss: 0.4516 | Neurones Actifs C1: 33.2% | Temps écoulé: 1999.86s | Durée de calcul: 12955.1ms
+Epoch 19, Batch 1000 | Loss: 0.4544 | Neurones Actifs C1: 33.3% | Temps écoulé: 2012.82s | Durée de calcul: 12958.5ms
+Epoch 19, Batch 1200 | Loss: 0.4564 | Neurones Actifs C1: 33.2% | Temps écoulé: 2025.77s | Durée de calcul: 12943.9ms
+Epoch 19, Batch 1400 | Loss: 0.4589 | Neurones Actifs C1: 33.2% | Temps écoulé: 2038.72s | Durée de calcul: 12957.2ms
+--- Fin Epoch 19, Moyenne Loss: 0.4554, Temps écoulé: 2038.72s ---
+Epoch 20, Batch 0 | Loss: 0.4543 | Neurones Actifs C1: 33.2% | Temps écoulé: 2050.52s | Durée de calcul: 11800.1ms
+Epoch 20, Batch 200 | Loss: 0.4505 | Neurones Actifs C1: 33.1% | Temps écoulé: 2063.48s | Durée de calcul: 12960.7ms
+Epoch 20, Batch 400 | Loss: 0.4631 | Neurones Actifs C1: 33.1% | Temps écoulé: 2076.44s | Durée de calcul: 12958.7ms
+Epoch 20, Batch 600 | Loss: 0.4561 | Neurones Actifs C1: 33.2% | Temps écoulé: 2089.40s | Durée de calcul: 12956.6ms
+Epoch 20, Batch 800 | Loss: 0.4553 | Neurones Actifs C1: 33.2% | Temps écoulé: 2102.37s | Durée de calcul: 12973.0ms
+Epoch 20, Batch 1000 | Loss: 0.4542 | Neurones Actifs C1: 33.1% | Temps écoulé: 2115.33s | Durée de calcul: 12954.6ms
+Epoch 20, Batch 1200 | Loss: 0.4543 | Neurones Actifs C1: 33.1% | Temps écoulé: 2128.29s | Durée de calcul: 12963.0ms
+Epoch 20, Batch 1400 | Loss: 0.4561 | Neurones Actifs C1: 33.2% | Temps écoulé: 2141.25s | Durée de calcul: 12960.6ms
+--- Fin Epoch 20, Moyenne Loss: 0.4551, Temps écoulé: 2141.25s ---
+Epoch 21, Batch 0 | Loss: 0.4566 | Neurones Actifs C1: 33.2% | Temps écoulé: 2153.05s | Durée de calcul: 11797.0ms
+Epoch 21, Batch 200 | Loss: 0.4516 | Neurones Actifs C1: 33.3% | Temps écoulé: 2166.01s | Durée de calcul: 12961.4ms
+Epoch 21, Batch 400 | Loss: 0.4578 | Neurones Actifs C1: 33.2% | Temps écoulé: 2178.96s | Durée de calcul: 12952.2ms
+Epoch 21, Batch 600 | Loss: 0.4559 | Neurones Actifs C1: 33.2% | Temps écoulé: 2191.92s | Durée de calcul: 12961.4ms
+Epoch 21, Batch 800 | Loss: 0.4539 | Neurones Actifs C1: 33.3% | Temps écoulé: 2204.90s | Durée de calcul: 12973.0ms
+Epoch 21, Batch 1000 | Loss: 0.4586 | Neurones Actifs C1: 33.2% | Temps écoulé: 2217.86s | Durée de calcul: 12965.4ms
+Epoch 21, Batch 1200 | Loss: 0.4514 | Neurones Actifs C1: 33.3% | Temps écoulé: 2230.83s | Durée de calcul: 12964.4ms
+Epoch 21, Batch 1400 | Loss: 0.4551 | Neurones Actifs C1: 33.1% | Temps écoulé: 2243.79s | Durée de calcul: 12961.4ms
+--- Fin Epoch 21, Moyenne Loss: 0.4548, Temps écoulé: 2243.79s ---
+Epoch 22, Batch 0 | Loss: 0.4509 | Neurones Actifs C1: 33.2% | Temps écoulé: 2255.92s | Durée de calcul: 12134.8ms
+Epoch 22, Batch 200 | Loss: 0.4520 | Neurones Actifs C1: 33.2% | Temps écoulé: 2270.67s | Durée de calcul: 14742.7ms
+Epoch 22, Batch 400 | Loss: 0.4522 | Neurones Actifs C1: 33.3% | Temps écoulé: 2284.45s | Durée de calcul: 13780.0ms
+Epoch 22, Batch 600 | Loss: 0.4558 | Neurones Actifs C1: 33.2% | Temps écoulé: 2298.73s | Durée de calcul: 14283.7ms
+Epoch 22, Batch 800 | Loss: 0.4561 | Neurones Actifs C1: 33.1% | Temps écoulé: 2317.76s | Durée de calcul: 19026.9ms
+Epoch 22, Batch 1000 | Loss: 0.4523 | Neurones Actifs C1: 33.3% | Temps écoulé: 2350.77s | Durée de calcul: 33016.7ms
+Epoch 22, Batch 1200 | Loss: 0.4561 | Neurones Actifs C1: 33.1% | Temps écoulé: 2380.62s | Durée de calcul: 29843.5ms
+Epoch 22, Batch 1400 | Loss: 0.4562 | Neurones Actifs C1: 33.2% | Temps écoulé: 2402.27s | Durée de calcul: 21657.2ms
+--- Fin Epoch 22, Moyenne Loss: 0.4546, Temps écoulé: 2402.27s ---
+Epoch 23, Batch 0 | Loss: 0.4524 | Neurones Actifs C1: 33.3% | Temps écoulé: 2422.24s | Durée de calcul: 19970.2ms
+Epoch 23, Batch 200 | Loss: 0.4570 | Neurones Actifs C1: 33.2% | Temps écoulé: 2448.43s | Durée de calcul: 26190.5ms
+Epoch 23, Batch 400 | Loss: 0.4550 | Neurones Actifs C1: 33.1% | Temps écoulé: 2472.15s | Durée de calcul: 23716.9ms
+Epoch 23, Batch 600 | Loss: 0.4558 | Neurones Actifs C1: 33.3% | Temps écoulé: 2495.23s | Durée de calcul: 23076.3ms
+Epoch 23, Batch 800 | Loss: 0.4494 | Neurones Actifs C1: 33.3% | Temps écoulé: 2515.79s | Durée de calcul: 20559.1ms
+Epoch 23, Batch 1000 | Loss: 0.4521 | Neurones Actifs C1: 33.2% | Temps écoulé: 2532.15s | Durée de calcul: 16364.2ms
+Epoch 23, Batch 1200 | Loss: 0.4507 | Neurones Actifs C1: 33.2% | Temps écoulé: 2554.24s | Durée de calcul: 22091.3ms
+Epoch 23, Batch 1400 | Loss: 0.4546 | Neurones Actifs C1: 33.1% | Temps écoulé: 2578.93s | Durée de calcul: 24687.0ms
+--- Fin Epoch 23, Moyenne Loss: 0.4543, Temps écoulé: 2578.93s ---
+Epoch 24, Batch 0 | Loss: 0.4533 | Neurones Actifs C1: 33.2% | Temps écoulé: 2592.34s | Durée de calcul: 13409.2ms
+Epoch 24, Batch 200 | Loss: 0.4503 | Neurones Actifs C1: 33.2% | Temps écoulé: 2616.38s | Durée de calcul: 24046.6ms
+Epoch 24, Batch 400 | Loss: 0.4558 | Neurones Actifs C1: 33.2% | Temps écoulé: 2639.72s | Durée de calcul: 23338.4ms
+Epoch 24, Batch 600 | Loss: 0.4557 | Neurones Actifs C1: 33.2% | Temps écoulé: 2663.44s | Durée de calcul: 23715.2ms
+Epoch 24, Batch 800 | Loss: 0.4508 | Neurones Actifs C1: 33.2% | Temps écoulé: 2689.44s | Durée de calcul: 26005.8ms
+Epoch 24, Batch 1000 | Loss: 0.4500 | Neurones Actifs C1: 33.2% | Temps écoulé: 2717.63s | Durée de calcul: 28181.7ms
+Epoch 24, Batch 1200 | Loss: 0.4567 | Neurones Actifs C1: 33.2% | Temps écoulé: 2740.72s | Durée de calcul: 23091.3ms
+Epoch 24, Batch 1400 | Loss: 0.4552 | Neurones Actifs C1: 33.2% | Temps écoulé: 2764.32s | Durée de calcul: 23599.4ms
+--- Fin Epoch 24, Moyenne Loss: 0.4541, Temps écoulé: 2764.32s ---
+Epoch 25, Batch 0 | Loss: 0.4547 | Neurones Actifs C1: 33.2% | Temps écoulé: 2785.64s | Durée de calcul: 21324.7ms
+Epoch 25, Batch 200 | Loss: 0.4515 | Neurones Actifs C1: 33.2% | Temps écoulé: 2808.55s | Durée de calcul: 22910.4ms
+Epoch 25, Batch 400 | Loss: 0.4566 | Neurones Actifs C1: 33.3% | Temps écoulé: 2822.54s | Durée de calcul: 13991.4ms
+Epoch 25, Batch 600 | Loss: 0.4529 | Neurones Actifs C1: 33.3% | Temps écoulé: 2845.03s | Durée de calcul: 22483.2ms
+Epoch 25, Batch 800 | Loss: 0.4513 | Neurones Actifs C1: 33.3% | Temps écoulé: 2869.51s | Durée de calcul: 24486.0ms
+Epoch 25, Batch 1000 | Loss: 0.4539 | Neurones Actifs C1: 33.2% | Temps écoulé: 2891.95s | Durée de calcul: 22438.9ms
+Epoch 25, Batch 1200 | Loss: 0.4475 | Neurones Actifs C1: 33.1% | Temps écoulé: 2916.24s | Durée de calcul: 24286.3ms
+Epoch 25, Batch 1400 | Loss: 0.4541 | Neurones Actifs C1: 33.2% | Temps écoulé: 2940.47s | Durée de calcul: 24234.9ms
+--- Fin Epoch 25, Moyenne Loss: 0.4532, Temps écoulé: 2940.47s ---
+Epoch 26, Batch 0 | Loss: 0.4528 | Neurones Actifs C1: 33.2% | Temps écoulé: 2959.44s | Durée de calcul: 18967.1ms
+Epoch 26, Batch 200 | Loss: 0.4484 | Neurones Actifs C1: 33.2% | Temps écoulé: 2973.43s | Durée de calcul: 13990.1ms
+Epoch 26, Batch 400 | Loss: 0.4559 | Neurones Actifs C1: 33.3% | Temps écoulé: 2989.66s | Durée de calcul: 16229.8ms
+Epoch 26, Batch 600 | Loss: 0.4493 | Neurones Actifs C1: 33.2% | Temps écoulé: 3003.30s | Durée de calcul: 13641.4ms
+Epoch 26, Batch 800 | Loss: 0.4499 | Neurones Actifs C1: 33.2% | Temps écoulé: 3017.83s | Durée de calcul: 14534.6ms
+Epoch 26, Batch 1000 | Loss: 0.4533 | Neurones Actifs C1: 33.1% | Temps écoulé: 3031.98s | Durée de calcul: 14142.7ms
+Epoch 26, Batch 1200 | Loss: 0.4625 | Neurones Actifs C1: 33.3% | Temps écoulé: 3046.97s | Durée de calcul: 14994.5ms
+Epoch 26, Batch 1400 | Loss: 0.4548 | Neurones Actifs C1: 33.3% | Temps écoulé: 3061.32s | Durée de calcul: 14350.0ms
+--- Fin Epoch 26, Moyenne Loss: 0.4531, Temps écoulé: 3061.32s ---
+Epoch 27, Batch 0 | Loss: 0.4553 | Neurones Actifs C1: 33.2% | Temps écoulé: 3074.47s | Durée de calcul: 13151.4ms
+Epoch 27, Batch 200 | Loss: 0.4552 | Neurones Actifs C1: 33.3% | Temps écoulé: 3088.62s | Durée de calcul: 14144.4ms
+Epoch 27, Batch 400 | Loss: 0.4571 | Neurones Actifs C1: 33.1% | Temps écoulé: 3102.89s | Durée de calcul: 14272.3ms
+Epoch 27, Batch 600 | Loss: 0.4565 | Neurones Actifs C1: 33.1% | Temps écoulé: 3117.29s | Durée de calcul: 14401.4ms
+Epoch 27, Batch 800 | Loss: 0.4516 | Neurones Actifs C1: 33.2% | Temps écoulé: 3131.27s | Durée de calcul: 13979.2ms
+Epoch 27, Batch 1000 | Loss: 0.4502 | Neurones Actifs C1: 33.2% | Temps écoulé: 3144.76s | Durée de calcul: 13488.9ms
+Epoch 27, Batch 1200 | Loss: 0.4551 | Neurones Actifs C1: 33.2% | Temps écoulé: 3158.51s | Durée de calcul: 13755.1ms
+Epoch 27, Batch 1400 | Loss: 0.4534 | Neurones Actifs C1: 33.1% | Temps écoulé: 3174.25s | Durée de calcul: 15734.7ms
+--- Fin Epoch 27, Moyenne Loss: 0.4531, Temps écoulé: 3174.25s ---
+Epoch 28, Batch 0 | Loss: 0.4537 | Neurones Actifs C1: 33.2% | Temps écoulé: 3188.33s | Durée de calcul: 14076.8ms
+Epoch 28, Batch 200 | Loss: 0.4556 | Neurones Actifs C1: 33.3% | Temps écoulé: 3202.49s | Durée de calcul: 14161.8ms
+Epoch 28, Batch 400 | Loss: 0.4525 | Neurones Actifs C1: 33.2% | Temps écoulé: 3217.97s | Durée de calcul: 15480.3ms
+Epoch 28, Batch 600 | Loss: 0.4581 | Neurones Actifs C1: 33.1% | Temps écoulé: 3232.17s | Durée de calcul: 14198.6ms
+Epoch 28, Batch 800 | Loss: 0.4542 | Neurones Actifs C1: 33.2% | Temps écoulé: 3248.45s | Durée de calcul: 16279.4ms
+Epoch 28, Batch 1000 | Loss: 0.4542 | Neurones Actifs C1: 33.1% | Temps écoulé: 3266.14s | Durée de calcul: 17698.1ms
+Epoch 28, Batch 1200 | Loss: 0.4497 | Neurones Actifs C1: 33.2% | Temps écoulé: 3282.02s | Durée de calcul: 15880.4ms
+Epoch 28, Batch 1400 | Loss: 0.4557 | Neurones Actifs C1: 33.3% | Temps écoulé: 3295.51s | Durée de calcul: 13486.5ms
+--- Fin Epoch 28, Moyenne Loss: 0.4531, Temps écoulé: 3295.51s ---
+Epoch 29, Batch 0 | Loss: 0.4532 | Neurones Actifs C1: 33.3% | Temps écoulé: 3311.06s | Durée de calcul: 15553.2ms
+Epoch 29, Batch 200 | Loss: 0.4530 | Neurones Actifs C1: 33.2% | Temps écoulé: 3327.78s | Durée de calcul: 16718.5ms
+Epoch 29, Batch 400 | Loss: 0.4536 | Neurones Actifs C1: 33.3% | Temps écoulé: 3343.09s | Durée de calcul: 15302.9ms
+Epoch 29, Batch 600 | Loss: 0.4536 | Neurones Actifs C1: 33.3% | Temps écoulé: 3359.91s | Durée de calcul: 16827.3ms
+Epoch 29, Batch 800 | Loss: 0.4505 | Neurones Actifs C1: 33.3% | Temps écoulé: 3375.15s | Durée de calcul: 15238.0ms
+Epoch 29, Batch 1000 | Loss: 0.4504 | Neurones Actifs C1: 33.2% | Temps écoulé: 3392.28s | Durée de calcul: 17128.4ms
+Epoch 29, Batch 1200 | Loss: 0.4497 | Neurones Actifs C1: 33.2% | Temps écoulé: 3408.67s | Durée de calcul: 16395.2ms
+Epoch 29, Batch 1400 | Loss: 0.4589 | Neurones Actifs C1: 33.1% | Temps écoulé: 3426.66s | Durée de calcul: 17989.1ms
+--- Fin Epoch 29, Moyenne Loss: 0.4531, Temps écoulé: 3426.66s ---
+Modèle sauvegardé sous 'model_halfKP_V1.npz'
