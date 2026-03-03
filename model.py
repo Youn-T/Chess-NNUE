@@ -155,6 +155,9 @@ for epoch in range(EPOCHS):
         current_lr = LEARNING_RATE * 0.01
 
     for i in range(0, len(indices), BATCH_SIZE):
+        elapsed = time.perf_counter() - t0
+        print(f"\n==========================\nStart Batch | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
+        
         t += 1
         batch_idx = indices[i : i + BATCH_SIZE]
         cur_batch_size = batch_idx.shape[0]
@@ -166,9 +169,21 @@ for epoch in range(EPOCHS):
         X_combined_T = cp_sparse.csr_matrix(X_combined.T)  # Transposée CSR pré-calculée
         y_batch = labels[batch_idx].reshape(-1, 1)
 
+
         # Forward (1 sparse matmul au lieu de 2)
+        
+        elapsed = time.perf_counter() - t0
+        print(f"Initialization | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
+        
         activations, zs = forward_pass(X_combined, cur_batch_size, weights, biases)
         A4 = activations[-1]
+
+        elapsed = time.perf_counter() - t0
+        print(f"Forward pass | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
+
+
+        # elapsed = time.perf_counter() - t0
+        # print(f"Forward Pass |Epoch {epoch}, Batch {i//BATCH_SIZE} |  Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
 
         # Loss (BCE fusionnée)
         loss = cp.mean(bce_loss_fused(y_batch, A4))
@@ -176,6 +191,9 @@ for epoch in range(EPOCHS):
 
         # Backward (transposée CSR pré-calculée, 1 matmul au lieu de 2)
         dWs, dbs = backward_pass(X_combined_T, cur_batch_size, y_batch, activations, zs, weights)
+        
+        elapsed = time.perf_counter() - t0
+        print(f"Backward pass & Loss | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
         
         dWs = clip_gradients(dWs)
         dbs = clip_gradients(dbs)
@@ -199,6 +217,9 @@ for epoch in range(EPOCHS):
         weights[0][active_cols] -= current_lr * (mw_hat_0 / (cp.sqrt(vw_hat_0) + EPSILON) + LAMBDA_L2 * weights[0][active_cols])
         biases[0] -= current_lr * (mb_hat_0 / (cp.sqrt(vb_hat_0) + EPSILON))
 
+        elapsed = time.perf_counter() - t0
+        print(f"Adam 1 | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
+        
         # ==========================================================
         # 2. ADAM DENSE STANDARD POUR LES COUCHES 2, 3 ET 4
         # ==========================================================
@@ -217,7 +238,7 @@ for epoch in range(EPOCHS):
             biases[j] -= current_lr * (mb_hat / (cp.sqrt(vb_hat) + EPSILON))
         
         elapsed = time.perf_counter() - t0
-        print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
+        print(f"Adam 2,3,4 | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
         tpast = elapsed
         
         # Affichage réduit (tous les 50 batches pour éviter la synchro GPU à chaque batch)
