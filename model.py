@@ -4,6 +4,7 @@ import pandas as pd
 import chess
 from scipy import sparse
 import cupyx.scipy.sparse as cp_sparse
+from cupyx.profiler import benchmark
 
 import time
 
@@ -68,18 +69,14 @@ mW, vW = [cp.zeros_like(W) for W in [W1, W2, W3, W4]], [cp.zeros_like(W) for W i
 mb, vb = [cp.zeros_like(b) for b in [b1, b2, b3, b4]], [cp.zeros_like(b) for b in [b1, b2, b3, b4]]
 
 # --- PASSAGES ---
-def forward_pass(X_us, X_them, weights, biases):
+def forward_pass(X_combined, batch_size, weights, biases):
     W1, W2, W3, W4 = weights
     b1, b2, b3, b4 = biases
     
-    # 1. Matmuls séparées sur matrices creuses (très rapide)
-    Z1_us = X_us.dot(W1) + b1
-    Z1_them = X_them.dot(W1) + b1
-    
-    # 2. Activation puis concaténation dense (extrêmement rapide)
-    A1_us = Leaky_Clipped_ReLU(Z1_us)
-    A1_them = Leaky_Clipped_ReLU(Z1_them)
-    A1 = cp.concatenate([A1_us, A1_them], axis=1) # Shape: (BATCH_SIZE, LAYER_1_SIZE * 2)
+    # Une seule sparse matmul au lieu de deux
+    Z1_combined = X_combined.dot(W1) + b1
+    A1_combined = Leaky_Clipped_ReLU(Z1_combined)
+    A1 = cp.concatenate([A1_combined[:batch_size], A1_combined[batch_size:]], axis=1)
     
     Z2 = cp.dot(A1, W2) + b2
     A2 = Leaky_ReLU(Z2)
@@ -90,13 +87,16 @@ def forward_pass(X_us, X_them, weights, biases):
     Z4 = cp.dot(A3, W4) + b4
     A4 = Sigmoid(Z4)
     
-    return [A1, A2, A3, A4], [Z1_us, Z1_them, Z2, Z3, Z4]
+    return [A1, A2, A3, A4], [Z1_combined, Z2, Z3, Z4]
 
-def backward_pass(X_us, X_them, y, activations, zs, weights):
+def backward_pass(X_combined_T, batch_size, y, activations, zs, weights):
     A1, A2, A3, A4 = activations
-    Z1_us, Z1_them, Z2, Z3, Z4 = zs
+    Z1_combined = zs[0]
+    Z1_us = Z1_combined[:batch_size]
+    Z1_them = Z1_combined[batch_size:]
+    Z2, Z3, Z4 = zs[1], zs[2], zs[3]
     W1, W2, W3, W4 = weights
-    m = X_us.shape[0]
+    m = batch_size
 
     dZ4 = A4 - y
     dW4 = cp.dot(A3.T, dZ4) / m
@@ -114,19 +114,16 @@ def backward_pass(X_us, X_them, y, activations, zs, weights):
 
     dA1 = cp.dot(dZ2, W2.T)
     
-    # Séparation du gradient dense
     dA1_us = dA1[:, :LAYER_1_SIZE]
-    dA1_them = dA1[:, LAYER_1_SIZE:]
-    
     dZ1_us = dA1_us * Leaky_Clipped_ReLU_derivative(Z1_us)
+    
+    dA1_them = dA1[:, LAYER_1_SIZE:]
     dZ1_them = dA1_them * Leaky_Clipped_ReLU_derivative(Z1_them)
     
-    # On utilise la transposée implicite .T (CSC) qui est gérée nativement par .dot()
-    dW1_us = X_us.T.dot(dZ1_us)
-    dW1_them = X_them.T.dot(dZ1_them)
-    
-    dW1 = (dW1_us + dW1_them) / m
-    db1 = (cp.sum(dZ1_us, axis=0) + cp.sum(dZ1_them, axis=0)) / m
+    # Combine les gradients et utilise la transposée CSR pré-calculée (1 matmul au lieu de 2)
+    dZ1_combined = cp.concatenate([dZ1_us, dZ1_them], axis=0)
+    dW1 = X_combined_T.dot(dZ1_combined) / m
+    db1 = cp.sum(dZ1_combined, axis=0) / m
 
     return [dW1, dW2, dW3, dW4], [db1, db2, db3, db4]
 
@@ -169,8 +166,8 @@ for epoch in range(EPOCHS):
         # Extraction CSR + combinaison des deux perspectives en une matrice
         X_batch_us = moves_us[batch_idx]
         X_batch_them = moves_them[batch_idx]
-        # X_combined = cp_sparse.vstack([X_batch_us, X_batch_them], format='csr')
-        # X_combined_T = cp_sparse.csr_matrix(X_combined.T)  # Transposée CSR pré-calculée
+        X_combined = cp_sparse.vstack([X_batch_us, X_batch_them], format='csr')
+        X_combined_T = cp_sparse.csr_matrix(X_combined.T)  # Transposée CSR pré-calculée
         y_batch = labels[batch_idx].reshape(-1, 1)
 
 
@@ -178,8 +175,7 @@ for epoch in range(EPOCHS):
         
         elapsed = time.perf_counter() - t0
         print(f"Initialization | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
-        
-        activations, zs = forward_pass(X_batch_us, X_batch_them, weights, biases)
+        activations, zs = forward_pass(X_combined, cur_batch_size, weights, biases)
         A4 = activations[-1]
 
         elapsed = time.perf_counter() - t0
@@ -194,7 +190,8 @@ for epoch in range(EPOCHS):
         total_loss += loss
 
         # Backward (transposée CSR pré-calculée, 1 matmul au lieu de 2)
-        dWs, dbs = backward_pass(X_batch_us, X_batch_them, y_batch, activations, zs, weights)
+        dWs, dbs = backward_pass(X_combined_T, cur_batch_size, y_batch, activations, zs, weights)
+        # print(benchmark(backward_pass, (X_combined_T, cur_batch_size, y_batch, activations, zs, weights), n_repeat=1))
         
         elapsed = time.perf_counter() - t0
         print(f"Backward pass & Loss | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
@@ -206,7 +203,8 @@ for epoch in range(EPOCHS):
         # 1. ADAM SPARSE POUR LA COUCHE 1 (L'Accumulateur HalfKP)
         # ==========================================================
         # Indices actifs depuis la matrice combinée
-        active_cols = cp.unique(cp.concatenate([X_batch_us.indices, X_batch_them.indices]))        
+        active_cols = cp.unique(X_combined.indices)
+        
         mW[0][active_cols] = BETA1 * mW[0][active_cols] + (1 - BETA1) * dWs[0][active_cols]
         vW[0][active_cols] = BETA2 * vW[0][active_cols] + (1 - BETA2) * (dWs[0][active_cols]**2)
         mb[0] = BETA1 * mb[0] + (1 - BETA1) * dbs[0]
