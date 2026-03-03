@@ -46,8 +46,12 @@ def Sigmoid(x):
 
 def clip_gradients(grads, max_norm=1.0):
     for i in range(len(grads)):
-        grads[i] = cp.clip(grads[i], -max_norm, max_norm)
+        cp.clip(grads[i], -max_norm, max_norm, out=grads[i])
     return grads
+
+@cp.fuse()
+def bce_loss_fused(y, a):
+    return -(y * cp.log(a + 1e-12) + (1 - y) * cp.log(1 - a + 1e-12))
 
 # --- INITIALISATION DES POIDS (He Initialization) ---
 W1 = cp.random.randn(INPUT_COUNT, LAYER_1_SIZE) * cp.sqrt(2.0 / 32.0)
@@ -64,15 +68,14 @@ mW, vW = [cp.zeros_like(W) for W in [W1, W2, W3, W4]], [cp.zeros_like(W) for W i
 mb, vb = [cp.zeros_like(b) for b in [b1, b2, b3, b4]], [cp.zeros_like(b) for b in [b1, b2, b3, b4]]
 
 # --- PASSAGES ---
-def forward_pass(X_us, X_them, weights, biases):
+def forward_pass(X_combined, batch_size, weights, biases):
     W1, W2, W3, W4 = weights
     b1, b2, b3, b4 = biases
     
-    Z1_us = X_us.dot(W1) + b1
-    A1_us = Leaky_Clipped_ReLU(Z1_us)
-    Z1_them = X_them.dot(W1) + b1
-    A1_them = Leaky_Clipped_ReLU(Z1_them)
-    A1 = cp.concatenate([A1_us, A1_them], axis=1) 
+    # Une seule sparse matmul au lieu de deux
+    Z1_combined = X_combined.dot(W1) + b1
+    A1_combined = Leaky_Clipped_ReLU(Z1_combined)
+    A1 = cp.concatenate([A1_combined[:batch_size], A1_combined[batch_size:]], axis=1)
     
     Z2 = cp.dot(A1, W2) + b2
     A2 = Leaky_ReLU(Z2)
@@ -83,14 +86,16 @@ def forward_pass(X_us, X_them, weights, biases):
     Z4 = cp.dot(A3, W4) + b4
     A4 = Sigmoid(Z4)
     
-    return [A1, A2, A3, A4], [(Z1_us, Z1_them), Z2, Z3, Z4]
+    return [A1, A2, A3, A4], [Z1_combined, Z2, Z3, Z4]
 
-def backward_pass(X_us, X_them, y, activations, zs, weights):
+def backward_pass(X_combined_T, batch_size, y, activations, zs, weights):
     A1, A2, A3, A4 = activations
-    Z1_us, Z1_them = zs[0]
+    Z1_combined = zs[0]
+    Z1_us = Z1_combined[:batch_size]
+    Z1_them = Z1_combined[batch_size:]
     Z2, Z3, Z4 = zs[1], zs[2], zs[3]
     W1, W2, W3, W4 = weights
-    m = X_us.shape[0]
+    m = batch_size
 
     dZ4 = A4 - y
     dW4 = cp.dot(A3.T, dZ4) / m
@@ -114,24 +119,12 @@ def backward_pass(X_us, X_them, y, activations, zs, weights):
     dA1_them = dA1[:, LAYER_1_SIZE:]
     dZ1_them = dA1_them * Leaky_Clipped_ReLU_derivative(Z1_them)
     
-    # .T.dot() sur CSR est géré nativement par CuPy, pas besoin de convertir en CSC
-    dW1 = (X_us.T.dot(dZ1_us) + X_them.T.dot(dZ1_them)) / m
-    db1 = (cp.sum(dZ1_us, axis=0) + cp.sum(dZ1_them, axis=0)) / m
+    # Combine les gradients et utilise la transposée CSR pré-calculée (1 matmul au lieu de 2)
+    dZ1_combined = cp.concatenate([dZ1_us, dZ1_them], axis=0)
+    dW1 = X_combined_T.dot(dZ1_combined) / m
+    db1 = cp.sum(dZ1_combined, axis=0) / m
 
     return [dW1, dW2, dW3, dW4], [db1, db2, db3, db4]
-
-    # dA1 = cp.dot(dZ2, W2.T)
-    
-    # dA1_us = dA1[:, :LAYER_1_SIZE]
-    # dZ1_us = dA1_us * Leaky_Clipped_ReLU_derivative(Z1_us)
-    
-    # dA1_them = dA1[:, LAYER_1_SIZE:]
-    # dZ1_them = dA1_them * Leaky_Clipped_ReLU_derivative(Z1_them)
-    
-    # dW1 = (X_us.T.dot(dZ1_us) + X_them.T.dot(dZ1_them)) / m
-    # db1 = (cp.sum(dZ1_us, axis=0) + cp.sum(dZ1_them, axis=0)) / m
-
-    # return [dW1, dW2, dW3, dW4], [db1, db2, db3, db4]
 
 # --- CHARGEMENT DATASET (Simulé ici, utilise tes fichiers) ---
 labels = cp.load('labels_halfKP_V4.npz')["Y"]
@@ -147,7 +140,7 @@ weights = [W1, W2, W3, W4]
 biases = [b1, b2, b3, b4]
 
 t0 = time.perf_counter()
-tpast = t0
+tpast = 0
 
 for epoch in range(EPOCHS):
     indices = cp.arange(moves_us.shape[0])
@@ -164,29 +157,52 @@ for epoch in range(EPOCHS):
     for i in range(0, len(indices), BATCH_SIZE):
         t += 1
         batch_idx = indices[i : i + BATCH_SIZE]
+        cur_batch_size = batch_idx.shape[0]
         
-        # L'extraction CSR est hyper rapide
+        # Extraction CSR + combinaison des deux perspectives en une matrice
         X_batch_us = moves_us[batch_idx]
         X_batch_them = moves_them[batch_idx]
+        X_combined = cp_sparse.vstack([X_batch_us, X_batch_them], format='csr')
+        X_combined_T = cp_sparse.csr_matrix(X_combined.T)  # Transposée CSR pré-calculée
         y_batch = labels[batch_idx].reshape(-1, 1)
 
-        # Forward
-        activations, zs = forward_pass(X_batch_us, X_batch_them, weights, biases)
+        # Forward (1 sparse matmul au lieu de 2)
+        activations, zs = forward_pass(X_combined, cur_batch_size, weights, biases)
         A4 = activations[-1]
 
-        # Loss (BCE)
-        loss = -cp.mean(y_batch * cp.log(A4 + 1e-12) + (1 - y_batch) * cp.log(1 - A4 + 1e-12))
+        # Loss (BCE fusionnée)
+        loss = cp.mean(bce_loss_fused(y_batch, A4))
         total_loss += loss
 
-        # Backward
-        dWs, dbs = backward_pass(X_batch_us, X_batch_them, y_batch, activations, zs, weights)
+        # Backward (transposée CSR pré-calculée, 1 matmul au lieu de 2)
+        dWs, dbs = backward_pass(X_combined_T, cur_batch_size, y_batch, activations, zs, weights)
+        
         dWs = clip_gradients(dWs)
         dbs = clip_gradients(dbs)
         
         # ==========================================================
-        # ADAM DENSE UNIFIÉ (Plus de cp.unique !)
+        # 1. ADAM SPARSE POUR LA COUCHE 1 (L'Accumulateur HalfKP)
         # ==========================================================
-        for j in range(len(weights)):
+        # Indices actifs depuis la matrice combinée
+        active_cols = cp.unique(X_combined.indices)
+        
+        mW[0][active_cols] = BETA1 * mW[0][active_cols] + (1 - BETA1) * dWs[0][active_cols]
+        vW[0][active_cols] = BETA2 * vW[0][active_cols] + (1 - BETA2) * (dWs[0][active_cols]**2)
+        mb[0] = BETA1 * mb[0] + (1 - BETA1) * dbs[0]
+        vb[0] = BETA2 * vb[0] + (1 - BETA2) * (dbs[0]**2)
+
+        mw_hat_0 = mW[0][active_cols] / (1 - BETA1**t)
+        vw_hat_0 = vW[0][active_cols] / (1 - BETA2**t)
+        mb_hat_0 = mb[0] / (1 - BETA1**t)
+        vb_hat_0 = vb[0] / (1 - BETA2**t)
+
+        weights[0][active_cols] -= current_lr * (mw_hat_0 / (cp.sqrt(vw_hat_0) + EPSILON) + LAMBDA_L2 * weights[0][active_cols])
+        biases[0] -= current_lr * (mb_hat_0 / (cp.sqrt(vb_hat_0) + EPSILON))
+
+        # ==========================================================
+        # 2. ADAM DENSE STANDARD POUR LES COUCHES 2, 3 ET 4
+        # ==========================================================
+        for j in range(1, len(weights)):
             mW[j] = BETA1 * mW[j] + (1 - BETA1) * dWs[j]
             mb[j] = BETA1 * mb[j] + (1 - BETA1) * dbs[j]
             vW[j] = BETA2 * vW[j] + (1 - BETA2) * (dWs[j]**2)
@@ -201,17 +217,26 @@ for epoch in range(EPOCHS):
             biases[j] -= current_lr * (mb_hat / (cp.sqrt(vb_hat) + EPSILON))
         
         elapsed = time.perf_counter() - t0
-        print(f"Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Temps: {elapsed:.2f}s")
-        if (i // BATCH_SIZE) % 200 == 0:
+        print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
+        tpast = elapsed
+        
+        # Affichage réduit (tous les 50 batches pour éviter la synchro GPU à chaque batch)
+        batch_num = i // BATCH_SIZE
+        if batch_num % 50 == 0:
+            cp.cuda.Stream.null.synchronize()
             elapsed = time.perf_counter() - t0
-            Z1_us, Z1_them = zs[0]
-            alive_mask_us = (Z1_us > 0) & (Z1_us <= 1.0)
-            alive_mask_them = (Z1_them > 0) & (Z1_them <= 1.0)
-            alive_mask = cp.concatenate([alive_mask_us, alive_mask_them], axis=1)
-            alive_ratio = cp.mean(alive_mask)
-            print(f"Epoch {epoch}, Batch {i//BATCH_SIZE} | Loss: {loss:.4f} | Neurones Actifs C1: {alive_ratio:.1%} | Temps: {elapsed:.2f}s")
+            loss_val = float(loss)
+            msg = f"Epoch {epoch}, Batch {batch_num} | Loss: {loss_val:.4f} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms"
+            if batch_num % 200 == 0:
+                Z1_combined = zs[0]
+                alive_mask = (Z1_combined > 0) & (Z1_combined <= 1.0)
+                alive_ratio = float(cp.mean(alive_mask))
+                msg += f" | Neurones Actifs C1: {alive_ratio:.1%}"
+            print(msg)
             tpast = elapsed
 
+    cp.cuda.Stream.null.synchronize()
+    elapsed = time.perf_counter() - t0
     print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f}, Temps écoulé: {elapsed:.2f}s ---")
 
 cp.savez('model_halfKP_V4.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
