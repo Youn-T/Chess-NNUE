@@ -31,11 +31,13 @@ _HP['k'] = (-1, False, True)
 
 def process_chunk_halfkp(fens, evals):
     """
-    Parsing FEN manuel + encodage HalfKP + labels vectorisés.
+    Parsing FEN manuel + encodage HalfKP des DEUX perspectives + labels vectorisés.
+    Retourne (mat_white, mat_black), labels.
     Aucune dépendance à python-chess → ~10x plus rapide.
     """
     n = len(fens)
-    rows, cols = [], []
+    rows_us, cols_us = [], []     # Remplacera w
+    rows_them, cols_them = [], [] # Remplacera b
     vals = np.empty(n, dtype=np.float64)
     white_turn = np.empty(n, dtype=np.bool_)
 
@@ -45,8 +47,7 @@ def process_chunk_halfkp(fens, evals):
 
         # --- Tour ---
         sp   = fen.index(' ')
-        is_w = fen[sp + 1] == 'w'
-        white_turn[i] = is_w
+        white_turn[i] = fen[sp + 1] == 'w'
 
         # --- Eval ---
         if '#' in ev:
@@ -58,8 +59,8 @@ def process_chunk_halfkp(fens, evals):
                 cleaned = ''.join(c for c in ev if c.isdigit() or c == '-')
                 vals[i] = int(cleaned) if cleaned and cleaned != '-' else 0
 
-        # --- Passe 1 : trouver le Roi du joueur actif ---
-        king_sq = -1
+        # --- Passe 1 : trouver les deux Rois ---
+        wking_sq = bking_sq = -1
         sq = 56
         for ch in fen[:sp]:
             if ch == '/':
@@ -68,12 +69,18 @@ def process_chunk_halfkp(fens, evals):
                 sq += ord(ch) - 48
             else:
                 info = _HP[ch]
-                if info[2] and info[1] == is_w:        # c'est un roi de la bonne couleur
-                    king_sq = sq if is_w else (sq ^ 56) # miroir si noirs
+                if info[2]:                             # is_king
+                    if info[1]:                         # is_white
+                        wking_sq = sq                   # perspective blanche : pas de miroir
+                    else:
+                        bking_sq = sq ^ 56              # perspective noire : miroir vertical
                 sq += 1
 
-        # --- Passe 2 : encoder les pièces (sauf les rois) ---
-        king_base = king_sq * 640                       # pré-calcul offset roi
+        # --- Passe 2 : encoder les pièces (sauf les rois) pour les deux perspectives ---
+        wking_base = wking_sq * 640
+        bking_base = bking_sq * 640
+        is_w = white_turn[i]
+
         sq = 56
         for ch in fen[:sp]:
             if ch == '/':
@@ -83,33 +90,44 @@ def process_chunk_halfkp(fens, evals):
             else:
                 pt, iw, is_king = _HP[ch]
                 if not is_king:
-                    dsq = sq if is_w else (sq ^ 56)
-                    co  = 0 if (iw == is_w) else 5      # 5 types de pièces par couleur
-                    rows.append(i)
-                    cols.append(king_base + (co + pt) * 64 + dsq)
+                    # Caractéristique du point de vue Blanc
+                    feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + sq
+                    # Caractéristique du point de vue Noir
+                    feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (sq ^ 56)
+                    
+                    # C'est ICI qu'on assigne Us et Them selon le trait !
+                    if is_w: # Aux blancs de jouer
+                        rows_us.append(i); cols_us.append(feat_w)
+                        rows_them.append(i); cols_them.append(feat_b)
+                    else:    # Aux noirs de jouer
+                        rows_us.append(i); cols_us.append(feat_b)
+                        rows_them.append(i); cols_them.append(feat_w)
                 sq += 1
 
-    # --- Labels vectorisés ---
+    # --- Labels vectorisés (du point de vue du joueur actif) ---
     vals[~white_turn] *= -1
     labels = (1.0 / (1.0 + np.exp(-vals / SCALING_FACTOR))).astype(np.float32)
 
-    data = np.ones(len(rows), dtype=np.float32)
-    mat  = sparse.csr_matrix((data, (rows, cols)),
-                             shape=(n, HALFKP_DIM), dtype=np.float32)
-    return mat, labels
+    ones_us = np.ones(len(rows_us), dtype=np.float32)
+    ones_them = np.ones(len(rows_them), dtype=np.float32)
+    mat_us  = sparse.csr_matrix((ones_us, (rows_us, cols_us)), shape=(n, HALFKP_DIM), dtype=np.float32)
+    mat_them  = sparse.csr_matrix((ones_them, (rows_them, cols_them)), shape=(n, HALFKP_DIM), dtype=np.float32)
+    return (mat_us, mat_them), labels
 
 # --- BOUCLE PRINCIPALE ---
 t0 = time.perf_counter()
-all_sparse = []
-all_labels = []
+all_sparse_w = []
+all_sparse_b = []
+all_labels   = []
 total = 0
 
-print("Début du traitement HalfKP optimisé...")
+print("Début du traitement HalfKP optimisé (deux perspectives)...")
 reader = pd.read_csv(FILE_PATH, chunksize=CHUNK_SIZE)
 
 for chunk in reader:
-    mat, labels = process_chunk_halfkp(chunk['FEN'].values, chunk['Evaluation'].values)
-    all_sparse.append(mat)
+    (mat_us, mat_them), labels = process_chunk_halfkp(chunk['FEN'].values, chunk['Evaluation'].values)
+    all_sparse_w.append(mat_us)
+    all_sparse_b.append(mat_them)
     all_labels.append(labels)
     total += len(labels)
     elapsed = time.perf_counter() - t0
@@ -117,11 +135,13 @@ for chunk in reader:
 
 # --- Assemblage final & sauvegarde ---
 print("Assemblage final...")
-final_moves  = sparse.vstack(all_sparse, format='csr')
-final_labels = np.concatenate(all_labels)
+final_moves_us = sparse.vstack(all_sparse_w, format='csr')
+final_moves_them = sparse.vstack(all_sparse_b, format='csr')
+final_labels  = np.concatenate(all_labels)
 
-sparse.save_npz('moves_halfKP_V1.npz', final_moves)
-np.savez('labels_halfKP_V1.npz', Y=final_labels)
+sparse.save_npz('moves_halfKP_V4_us.npz', final_moves_us)
+sparse.save_npz('moves_halfKP_V4_them.npz', final_moves_them)
+np.savez('labels_halfKP_V4.npz', Y=final_labels)
 
 dt = time.perf_counter() - t0
-print(f"\nTerminé ! {final_moves.shape[0]:,} positions ({HALFKP_DIM} features) en {dt:.1f}s ({final_moves.shape[0]/dt:,.0f} pos/s)")
+print(f"\nTerminé ! {final_moves_us.shape[0]:,} positions ({HALFKP_DIM} features) en {dt:.1f}s ({final_moves_us.shape[0]/dt:,.0f} pos/s)")
