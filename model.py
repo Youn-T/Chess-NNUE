@@ -9,7 +9,7 @@ import time
 
 # --- HYPERPARAMÈTRES ---
 INPUT_COUNT = 40960
-LAYER_1_SIZE = 512
+LAYER_1_SIZE = 256  # Par perspective (256 us + 256 them = 512 concaténés, comme Stockfish NNUE)
 LAYER_2_SIZE = 32
 LAYER_3_SIZE = 32
 BATCH_SIZE = 8192 # Précedemment à 128
@@ -127,14 +127,16 @@ def backward_pass(X_us, X_them, y, activations, zs, weights):
 
     return [dW1, dW2, dW3, dW4], [db1, db2, db3, db4]
 
-# --- CHARGEMENT DATASET (Simulé ici, utilise tes fichiers) ---
-labels = cp.load('labels_halfKP_V4.npz')["Y"]
-# On charge en CSR et ON RESTE en CSR pour le dataset global !
-matrix_us_cpu = sparse.load_npz('moves_halfKP_V4_us.npz')
-moves_us = cp_sparse.csr_matrix(matrix_us_cpu)  
+# --- CHARGEMENT DATASET ---
+# Labels restent en RAM CPU (52 MB)
+labels_cpu = np.load('labels_halfKP_V4.npz')["Y"]
 
-matrix_them_cpu = sparse.load_npz('moves_halfKP_V4_them.npz')
-moves_them = cp_sparse.csr_matrix(matrix_them_cpu)
+# Matrices sparse en float16 sur CPU (~986 MB chacune au lieu de 1972 MB)
+matrix_us_cpu = sparse.load_npz('moves_halfKP_V4_us.npz').astype(np.bool)
+matrix_them_cpu = sparse.load_npz('moves_halfKP_V4_them.npz').astype(np.bool)
+
+num_samples = matrix_us_cpu.shape[0]
+print(f"Dataset: {num_samples:,} samples, sparse float16 sur CPU")
 # --- BOUCLE D'ENTRAÎNEMENT ---
 t = 0 # Compteur global Adam
 weights = [W1, W2, W3, W4]
@@ -144,8 +146,8 @@ t0 = time.perf_counter()
 tpast = t0
 
 for epoch in range(EPOCHS):
-    indices = cp.arange(moves_us.shape[0])
-    cp.random.shuffle(indices)
+    indices = np.arange(num_samples)
+    np.random.shuffle(indices)
     total_loss = 0
 
     if epoch < 15:
@@ -155,14 +157,14 @@ for epoch in range(EPOCHS):
     else:
         current_lr = LEARNING_RATE * 0.01
 
-    for i in range(0, len(indices), BATCH_SIZE):
+    for i in range(0, num_samples, BATCH_SIZE):
         t += 1
         batch_idx = indices[i : i + BATCH_SIZE]
         
-        # Extraction CSR directe (PAS de vstack, PAS de transposée CSR)
-        X_batch_us = moves_us[batch_idx]
-        X_batch_them = moves_them[batch_idx]
-        y_batch = labels[batch_idx].reshape(-1, 1)
+        # Extraction CPU (float16 CSR) puis transfert GPU (converti en float32 sur GPU)
+        X_batch_us = cp_sparse.csr_matrix(matrix_us_cpu[batch_idx].astype(np.float32))
+        X_batch_them = cp_sparse.csr_matrix(matrix_them_cpu[batch_idx].astype(np.float32))
+        y_batch = cp.asarray(labels_cpu[batch_idx]).reshape(-1, 1)
 
         # Forward (2 sparse matmuls séparées)
         activations, zs = forward_pass(X_batch_us, X_batch_them, weights, biases)
@@ -197,8 +199,8 @@ for epoch in range(EPOCHS):
         
         
         elapsed = time.perf_counter() - t0
-        print(f"Adam 2,3,4 | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
-        tpast = elapsed
+        # print(f"Adam 2,3,4 | Epoch {epoch}, Batch {i//BATCH_SIZE} | Temps: {elapsed:.2f}s | Durée: {(elapsed - tpast)*1000:.1f}ms")
+        # tpast = elapsed
         # Affichage réduit (tous les 200 batches pour éviter la synchro GPU)
         batch_num = i // BATCH_SIZE
         if batch_num % 200 == 0:
