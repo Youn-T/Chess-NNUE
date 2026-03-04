@@ -17,7 +17,7 @@ if not _candidate.exists():
 FILE_PATH = str(_candidate)
 
 CHUNK_SIZE = 500_000
-SCALING_FACTOR = 75
+SCALING_FACTOR = 150
 HALFKP_DIM = 64 * 640          # 40 960 features
 
 # --- LOOKUP TABLE HalfKP ---
@@ -139,9 +139,9 @@ final_moves_us = sparse.vstack(all_sparse_w, format='csr')
 final_moves_them = sparse.vstack(all_sparse_b, format='csr')
 final_labels  = np.concatenate(all_labels)
 
-sparse.save_npz('moves_halfKP_V4_us.npz', final_moves_us)
-sparse.save_npz('moves_halfKP_V4_them.npz', final_moves_them)
-np.savez('labels_halfKP_V4.npz', Y=final_labels)
+sparse.save_npz('moves_halfKP_V4.5_us.npz', final_moves_us)
+sparse.save_npz('moves_halfKP_V4.5_them.npz', final_moves_them)
+np.savez('labels_halfKP_V4.5.npz', Y=final_labels)
 
 dt = time.perf_counter() - t0
 print(f"\nTerminé ! {final_moves_us.shape[0]:,} positions ({HALFKP_DIM} features) en {dt:.1f}s ({final_moves_us.shape[0]/dt:,.0f} pos/s)")
