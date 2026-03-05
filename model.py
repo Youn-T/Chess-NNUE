@@ -73,7 +73,7 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf')):
     # 3. Logique Minimax corrigée avec Alpha-Beta
     if board.turn == chess.WHITE:
         max_eval = float('-inf')
-        for move in board.legal_moves:
+        for move in sort_moves(board):
             board.push(move)
             eval_value, _ = minimax(board, depth - 1, alpha, beta)
             board.pop()
@@ -89,7 +89,7 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf')):
         
     else:
         min_eval = float('inf')
-        for move in board.legal_moves:
+        for move in sort_moves(board):
             board.push(move)
             eval_value, _ = minimax(board, depth - 1, alpha, beta)
             board.pop()
@@ -103,7 +103,27 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf')):
                 break # Coupure Alpha-Beta
         return (min_eval, best_move)
     
+def score_move(board : chess.Board, move : chess.Move):
     
+    if board.is_capture(move) :
+        victim = board.piece_at(move.to_square)
+        attacker = board.piece_at(move.from_square)
+        
+        if victim:
+            return 9000 + (victim.piece_type * 100 ) - attacker.piece_type
+        return 9000
+    
+    if move.promotion:
+        return 8000
+    
+    return 5000
+    # if 
+    
+def sort_moves(board: chess.Board):
+    moves = list(board.legal_moves)
+    moves.sort(key= lambda x : score_move(board, x), reverse=True)
+    return moves
+
     
 def get_active_indices(board):
     """
@@ -182,123 +202,3 @@ def predict_fast(us_indices, them_indices, weights, biases):
     x = max(min(Z4[0], 500), -500)
     return 1 / (1 + np.exp(-x))
     
-## LEGACY
-    
-    
-_HP = {}
-for _i, _c in enumerate('PNBRQ'):
-    _HP[_c]         = (_i, True,  False)
-    _HP[_c.lower()] = (_i, False, False)
-_HP['K'] = (-1, True,  True)
-_HP['k'] = (-1, False, True)
-  
-HALFKP_DIM = 64 * 640 
-def process_chunk_halfkp(fens):
-    """
-    Parsing FEN manuel + encodage HalfKP des DEUX perspectives + labels vectorisés.
-    Retourne (mat_white, mat_black), labels.
-    Aucune dépendance à python-chess → ~10x plus rapide.
-    """
-    n = len([fens.fen()])
-    fens = [fens.fen()]
-    rows_us, cols_us = [], []     # Remplacera w
-    rows_them, cols_them = [], [] # Remplacera b
-    vals = np.empty(n, dtype=np.float64)
-    white_turn = np.empty(n, dtype=np.bool_)
-
-    for i in range(1):
-        fen = fens[i]
-
-        # --- Tour ---
-        sp   = fen.index(' ')
-        white_turn[i] = fen[sp + 1] == 'w'  
-
-        # --- Passe 1 : trouver les deux Rois ---
-        wking_sq = bking_sq = -1
-        sq = 56
-        for ch in fen[:sp]:
-            if ch == '/':
-                sq -= 16
-            elif '1' <= ch <= '8':
-                sq += ord(ch) - 48
-            else:
-                info = _HP[ch]
-                if info[2]:                             # is_king
-                    if info[1]:                         # is_white
-                        wking_sq = sq                   # perspective blanche : pas de miroir
-                    else:
-                        bking_sq = sq ^ 56              # perspective noire : miroir vertical
-                sq += 1
-
-        # --- Passe 2 : encoder les pièces (sauf les rois) pour les deux perspectives ---
-        wking_base = wking_sq * 640
-        bking_base = bking_sq * 640
-        is_w = white_turn[i]
-
-        sq = 56
-        for ch in fen[:sp]:
-            if ch == '/':
-                sq -= 16
-            elif '1' <= ch <= '8':
-                sq += ord(ch) - 48
-            else:
-                pt, iw, is_king = _HP[ch]
-                if not is_king:
-                    # Caractéristique du point de vue Blanc
-                    feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + sq
-                    # Caractéristique du point de vue Noir
-                    feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (sq ^ 56)
-                    
-                    # C'est ICI qu'on assigne Us et Them selon le trait !
-                    if is_w: # Aux blancs de jouer
-                        rows_us.append(i); cols_us.append(feat_w)
-                        rows_them.append(i); cols_them.append(feat_b)
-                    else:    # Aux noirs de jouer
-                        rows_us.append(i); cols_us.append(feat_b)
-                        rows_them.append(i); cols_them.append(feat_w)
-                sq += 1
-
-    # --- Labels vectorisés (du point de vue du joueur actif) ---
-    vals[~white_turn] *= -1
-
-    ones_us = np.ones(len(rows_us), dtype=np.float32)
-    ones_them = np.ones(len(rows_them), dtype=np.float32)
-    mat_us  = sparse.csr_matrix((ones_us, (rows_us, cols_us)), shape=(n, HALFKP_DIM), dtype=np.float32)
-    mat_them  = sparse.csr_matrix((ones_them, (rows_them, cols_them)), shape=(n, HALFKP_DIM), dtype=np.float32)
-    return (mat_us[0], mat_them[0])
-
-# def board_to_input_vector(board : chess.Board, king_color = "black"):
-#     input_w = np.zeros((1, INPUT_COUNT))
-#     input_b = np.zeros((1, INPUT_COUNT))
-    
-#     king = board.king(chess.BLACK if king_color == "black" else chess.WHITE)
-#     for square in chess.SQUARES:
-#         piece = board.piece_at(square)
-#         if piece is not None:
-#             input_w[0][ king * 640 + ((0 if piece.color == chess.WHITE else 5) + piece.piece_type) * 64 + square ] = 1
-#             input_b[0][ king * 640 + ((0 if piece.color == chess.BLACK else 5) + piece.piece_type) * 64 + (square ^ 56) ] = 1
-#     return input_w, input_b
-
-def predict(X_us, X_them, weights, biases):
-    W1, W2, W3, W4 = weights
-    b1, b2, b3, b4 = biases
-
-    # 2 sparse matmuls séparées (évite vstack + overhead)
-    Z1_us = X_us.dot(W1) + b1
-    A1_us = Leaky_Clipped_ReLU(Z1_us)
-    
-    Z1_them = X_them.dot(W1) + b1
-    A1_them = Leaky_Clipped_ReLU(Z1_them)
-    
-    A1 = np.concatenate([A1_us, A1_them], axis=1)
-    
-    Z2 = np.dot(A1, W2) + b2
-    A2 = Leaky_ReLU(Z2)
-    
-    Z3 = np.dot(A2, W3) + b3
-    A3 = Leaky_ReLU(Z3)
-    
-    Z4 = np.dot(A3, W4) + b4
-    A4 = Sigmoid(Z4)
-    
-    return A4[0]
