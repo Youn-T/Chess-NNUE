@@ -1,0 +1,149 @@
+<html>
+
+<head>
+    <title>Flask Tutorial</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style>
+        .small-gray-circle {
+            position: relative;
+        }
+
+        .small-gray-circle::before {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #9CA3AF;
+            /* gray-400 */
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.9;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="justify-items-center items-center">
+    <script>
+        fetch('/init_game').then(r => r.json()).then(d => {
+            for (const [i, row] of d.board.entries()) {
+                for (const [j, cell] of row.entries()) {
+                    if (cell !== 0) {
+                        document.getElementById(i * 8 + j).setHTMLUnsafe(cell);
+                    }
+                }
+            }
+        });
+    </script>
+    <script>
+        function resetBoard() {
+            for (let i = 0; i < 64; i++) {
+                document.getElementById(i).classList.remove('small-gray-circle');
+            }
+        }
+
+        var currentPiece = null;
+        var legalMoves = [];
+        function setCurrentPiece(piece) {
+            console.log("current piece: " + currentPiece);
+            if (currentPiece == piece) {
+                console.log("same piece");
+                currentPiece = null;
+                resetBoard();
+                return;
+            }
+            else if (currentPiece == null) {
+                console.log("null");
+                fetch('/get_legal_moves/' + piece.id).then(r => r.json()).then(d => {
+                    resetBoard();
+                    legalMoves = d.legal_moves;
+                    for (const move of d.legal_moves) {
+                        console.log(move);
+
+                        document.getElementById(move[1]).classList.add('small-gray-circle');
+                    }
+                });
+                currentPiece = piece;
+                return;
+            }
+
+            else if (!legalMoves.some(move => move[1] == piece.id) && document.getElementById(piece.id).innerHTML == "") {
+                console.log("not legal move");
+                currentPiece = null;
+                resetBoard();
+                return;
+            } else if (!legalMoves.some(move => move[1] == piece.id) && document.getElementById(piece.id).innerHTML != "") {
+                console.log("not legal move but there is a piece");
+                fetch('/get_legal_moves/' + piece.id).then(r => r.json()).then(d => {
+                    resetBoard();
+                    legalMoves = d.legal_moves;
+                    for (const move of d.legal_moves) {
+                        console.log(move);
+
+                        document.getElementById(move[1]).classList.add('small-gray-circle');
+                    }
+                });
+                currentPiece = piece;
+                return;
+            } else if (legalMoves.some(move => move[1] == piece.id)) {
+                console.log("legal move");
+                fetch('/make_move/' + currentPiece.id + '/' + piece.id).then(r => r.json()).then(d => {
+                    resetBoard();
+                    for (const [i, row] of d.board.entries()) {
+                        for (const [j, cell] of row.entries()) {
+                            if (cell !== 0) {
+                                document.getElementById(i * 8 + j).setHTMLUnsafe(cell);
+                            } else {
+                                document.getElementById(i * 8 + j).innerHTML = "";
+                            }
+                        }
+                    }
+                    document.getElementById("turn").innerText = "AI's Turn";
+                    fetch('/ai_move').then(r => r.json()).then(d => {
+                        document.getElementById("turn").innerText = "Your Turn";
+                        resetBoard();
+                        for (const [i, row] of d.board.entries()) {
+                            for (const [j, cell] of row.entries()) {
+                                if (cell !== 0) {
+                                    document.getElementById(i * 8 + j).setHTMLUnsafe(cell);
+                                } else {
+                                    document.getElementById(i * 8 + j).innerHTML = "";
+                                }
+                            }
+                        }
+                    });
+                });
+                currentPiece = null;
+                return;
+            }
+            // console.log(piece.id);
+            // fetch('/get_legal_moves/' + piece.id).then(r => r.json()).then(d => {
+            //     resetBoard();
+            //     for (const move of d.legal_moves) {
+            //         console.log(move);
+
+            //         document.getElementById(move[1]).classList.add('small-gray-circle');
+            //     }
+            // });
+
+        }
+    </script>
+    <h1 id="turn">Your Turn</h1>
+    {% for i in range(8) %}
+    <div class="flex">
+        {% for j in range(8) %}
+        {% if (i + j) % 2 == 0 %}
+        <div class="w-16 h-16 bg-gray-300 " id={{ i * 8 + j }} onclick="setCurrentPiece(this)"></div>
+        {% else %}
+        <div class="w-16 h-16 bg-gray-700 " id={{ i * 8 + j }} onclick="setCurrentPiece(this)"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    {% endfor %}
+</body>
+
+</html>
