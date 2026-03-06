@@ -62,7 +62,7 @@ killer_moves = [[None, None] for _ in range(MAX_PLY)]
 # [couleur][case_depart][case_arrivee]
 history_scores = np.zeros((2, 64, 64), dtype=int)
 
-def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumulator=None):
+def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0):
     original_alpha = alpha
     board_hash = board.fen() # python-chess génère ça très vite
     
@@ -74,24 +74,22 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumul
         hash_move = tt_move
         if tt_depth >= depth:
             if tt_flag == 0: # EXACT
-                return tt_score, tt_move, accumulator
+                return tt_score, tt_move
             elif tt_flag == 1: # ALPHA
                 beta = min(beta, tt_score)
             elif tt_flag == 2: # BETA
                 alpha = max(alpha, tt_score)
             
             if alpha >= beta:
-                return tt_score, tt_move, accumulator
+                return tt_score, tt_move
 
     # --- 2. CONDITION D'ARRÊT ---
     if board.is_game_over() or depth == 0:
         # (Utilisez votre fonction predict_fast optimisée ici)
-        score = predict_fast(accumulator, weights, biases)
+        us_idx, them_idx = get_active_indices(board)
+        score = predict_fast(us_idx, them_idx, weights, biases)
         if board.turn == chess.BLACK: score = 1.0 - score
-        return score, None, accumulator
-
-    if accumulator is None:
-        accumulator = generate_accumulator(board, W1, b1) # Génère l'accumulateur pour la position actuelle
+        return score, None
 
     # --- 3. TRI DES COUPS ---
     legal_moves = list(board.legal_moves)
@@ -101,45 +99,20 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumul
     best_eval = float('-inf') if board.turn == chess.WHITE else float('inf')
 
     for move in legal_moves:
-        piece_moved = board.piece_at(move.from_square)
-        if piece_moved and piece_moved.piece_type == chess.KING:
-            board.push(move)  # Le roi bouge, l'accumulateur change complètement, on le régénère
-            _accumulator = generate_accumulator(board, W1, b1)
-            eval_val, _, accumulator = minimax(board, depth - 1, alpha, beta, ply + 1, _accumulator)
-            board.pop()
-        else :
-            
-            new_acc = [accumulator[0].copy(), accumulator[1].copy()]
-            
-            new_acc = remove_piece_from_acc(new_acc, move.from_square, piece_moved, board, W1) # Retire la pièce de la case de départ
-            
-            if board.is_capture(move):
-                capture_square = move.to_square
-                if board.is_en_passant(move):
-                    capture_square = move.to_square + (8 if board.turn == chess.WHITE else -8) # La pièce capturée est en fait derrière la case d'arrivée
-                captured_piece = board.piece_at(capture_square)
-                new_acc = remove_piece_from_acc(new_acc, capture_square, captured_piece, board, W1)
+        board.push(move)
+        eval_val, _ = minimax(board, depth - 1, alpha, beta, ply + 1)
+        board.pop()
 
-
-            piece_arriving = piece_moved
-            if move.promotion:
-                piece_arriving = chess.Piece(move.promotion, piece_moved.color)
-            new_acc = add_piece_to_acc(new_acc, move.to_square, piece_arriving, board, W1)
-            
-            board.push(move)
-            eval_val, _, accumulator = minimax(board, depth - 1, alpha, beta, ply + 1, new_acc)
-            board.pop()
-
-            if board.turn == chess.WHITE:
-                if eval_val > best_eval:
-                    best_eval = eval_val
-                    best_move = move
-                alpha = max(alpha, eval_val)
-            else:
-                if eval_val < best_eval:
-                    best_eval = eval_val
-                    best_move = move
-                beta = min(beta, eval_val)
+        if board.turn == chess.WHITE:
+            if eval_val > best_eval:
+                best_eval = eval_val
+                best_move = move
+            alpha = max(alpha, eval_val)
+        else:
+            if eval_val < best_eval:
+                best_eval = eval_val
+                best_move = move
+            beta = min(beta, eval_val)
 
         # --- 4. COUPURE BETA (L'endroit où on apprend) ---
         if alpha >= beta:
@@ -166,7 +139,7 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumul
         
     transposition_table[board_hash] = (depth, best_eval, flag, best_move)
     
-    return best_eval, best_move, accumulator
+    return best_eval, best_move
     
 def get_move_priority(board, move, depth, ply, hash_move):
     # 1. Le coup de la Table de Transposition (Priorité absolue)
@@ -239,189 +212,7 @@ def get_active_indices(board):
 
     return us_indices, them_indices
 
-def generate_accumulator(board, W1, b1):
-    us_indices = []
-    them_indices = []
-    is_w = board.turn == chess.WHITE
-
-    # 1. Trouver les rois
-    wking_sq = board.king(chess.WHITE)
-    bking_sq = board.king(chess.BLACK)
-    
-    # Si un roi manque (peut arriver dans des variantes ou tests), on gère ou on ignore.
-    if wking_sq is None or bking_sq is None:
-        return [], []
-
-    wking_base = wking_sq * 640
-    # Miroir vertical pour le roi noir
-    bking_base = (bking_sq ^ 56) * 640 
-
-    # 2. Parcourir les pièces
-    for sq, piece in board.piece_map().items():
-        if piece.piece_type == chess.KING:
-            continue
-            
-        iw = piece.color == chess.WHITE
-        pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-        
-        # Caractéristique point de vue Blanc
-        feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + sq
-        # Caractéristique point de vue Noir (miroir vertical)
-        feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (sq ^ 56)
-        
-        if is_w:
-            us_indices.append(feat_w)
-            them_indices.append(feat_b)
-        else:
-            us_indices.append(feat_b)
-            them_indices.append(feat_w)
-    Z1_us = np.sum(W1[us_indices], axis=0) + b1
-    Z1_them = np.sum(W1[them_indices], axis=0) + b1
-    return [Z1_us, Z1_them]
-
-def remove_piece_from_acc(acc, square, piece, board, W1):
-    # Si la pièce est None (cas possible pour certaines captures), ne rien faire
-    if piece is None:
-        return acc
-
-    is_w = board.turn == chess.WHITE
-    wking_sq = board.king(chess.WHITE)
-    bking_sq = board.king(chess.BLACK)
-
-    wking_base = wking_sq * 640
-    bking_base = (bking_sq ^ 56) * 640 
-        
-    if piece.piece_type == chess.KING:
-        return acc # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-        
-    iw = piece.color == chess.WHITE
-    pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-    
-    # Caractéristique point de vue Blanc
-    feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + square
-    # Caractéristique point de vue Noir (miroir vertical)
-    feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (square ^ 56)
-    
-    if is_w:
-        acc[0] -= W1[feat_w] 
-        acc[1] -= W1[feat_b]
-    else:
-        acc[0] -= W1[feat_b]
-        acc[1] -= W1[feat_w]
-        
-    return acc
-
-
-def add_piece_to_acc(acc, square, piece, board, W1):
-    # Si la pièce est None, ne rien faire
-    if piece is None:
-        return acc
-
-    is_w = board.turn == chess.WHITE
-    wking_sq = board.king(chess.WHITE)
-    bking_sq = board.king(chess.BLACK)
-
-    wking_base = wking_sq * 640
-    bking_base = (bking_sq ^ 56) * 640 
-        
-    if piece.piece_type == chess.KING:
-        return acc # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-        
-    iw = piece.color == chess.WHITE
-    pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-    
-    # Caractéristique point de vue Blanc
-    feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + square
-    # Caractéristique point de vue Noir (miroir vertical)
-    feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (square ^ 56)
-    
-    if is_w:
-        acc[0] += W1[feat_w] 
-        acc[1] += W1[feat_b]
-    else:
-        acc[0] += W1[feat_b]
-        acc[1] += W1[feat_w]
-        
-    return acc
-
-def push_move_on_accumulator(accumulator, move: chess.Move, board: chess.Board, W1):
-    is_w = board.turn == chess.WHITE
-    wking_sq = board.king(chess.WHITE)
-    bking_sq = board.king(chess.BLACK)
-
-    wking_base = wking_sq * 640
-    bking_base = (bking_sq ^ 56) * 640 
-        
-    if move.from_square:
-        piece = board.piece_at(move.from_square)
-        if piece:
-            if piece.piece_type == chess.KING:
-                return accumulator # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-                
-            iw = piece.color == chess.WHITE
-            pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-            
-            # Caractéristique point de vue Blanc
-            feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + move.from_square
-            # Caractéristique point de vue Noir (miroir vertical)
-            feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (move.from_square ^ 56)
-            
-            if is_w:
-                accumulator[0] -= W1[feat_w] 
-                accumulator[1] -= W1[feat_b]
-            else:
-                accumulator[0] -= W1[feat_b]
-                accumulator[1] -= W1[feat_w]
-                
-    if move.to_square:
-        piece = board.piece_at(move.from_square)
-        if piece:
-            if piece.piece_type == chess.KING:
-                return accumulator # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-                
-            iw = piece.color == chess.WHITE
-            pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-            
-            # Caractéristique point de vue Blanc
-            feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + move.to_square
-            # Caractéristique point de vue Noir (miroir vertical)
-            feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (move.to_square ^ 56)
-            
-            if is_w:
-                accumulator[0] += W1[feat_w] 
-                accumulator[1] += W1[feat_b]
-            else:
-                accumulator[0] += W1[feat_b]
-                accumulator[1] += W1[feat_w]
-                
-                
-    if board.is_capture(move):
-        piece = board.piece_at(move.to_square)
-        if piece:
-            if piece.piece_type == chess.KING:
-                return accumulator # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-                
-            iw = piece.color == chess.WHITE
-            pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-            
-            # Caractéristique point de vue Blanc
-            feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + move.to_square
-            # Caractéristique point de vue Noir (miroir vertical)
-            feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (move.to_square ^ 56)
-            
-            if is_w:
-                accumulator[0] -= W1[feat_w] 
-                accumulator[1] -= W1[feat_b]
-            else:
-                accumulator[0] -= W1[feat_b]
-                accumulator[1] -= W1[feat_w]
-                
-    return accumulator
-    
-
-
-
-def predict_fast(accumulator, weights, biases):
+def predict_fast(us_indices, them_indices, weights, biases):
     """
     Évaluation hyper-rapide par indexation directe (somme des lignes).
     Plus besoin de scipy.sparse.
@@ -431,7 +222,12 @@ def predict_fast(accumulator, weights, biases):
 
     # Au lieu de multiplier une matrice creuse, on somme juste les lignes de W1
     # correspondant aux caractéristiques actives. C'est O(N_pieces).
-    Z1_us, Z1_them = accumulator
+    if len(us_indices) > 0:
+        Z1_us = np.sum(W1[us_indices], axis=0) + b1
+        Z1_them = np.sum(W1[them_indices], axis=0) + b1
+    else:
+        Z1_us = b1.copy()
+        Z1_them = b1.copy()
 
     A1_us = Leaky_Clipped_ReLU(Z1_us)
     A1_them = Leaky_Clipped_ReLU(Z1_them)
