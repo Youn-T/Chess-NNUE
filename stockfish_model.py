@@ -1,6 +1,8 @@
 import chess
 import numpy as np
 from scipy import sparse
+from stockfish import Stockfish
+stockfish = Stockfish(path="C:/Users/yount/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe")
 
 INPUT_COUNT = 40960
 LAYER_1_SIZE = 256  # Par perspective (256 us + 256 them = 512 concaténés, comme Stockfish NNUE)
@@ -62,7 +64,7 @@ killer_moves = [[None, None] for _ in range(MAX_PLY)]
 # [couleur][case_depart][case_arrivee]
 history_scores = np.zeros((2, 64, 64), dtype=int)
 
-def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumulator=None):
+def minimax(board : chess.Board, depth, alpha=float('-inf'), beta=float('inf'), ply=0):
     original_alpha = alpha
     board_hash = board.fen() # python-chess génère ça très vite
     
@@ -74,24 +76,54 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumul
         hash_move = tt_move
         if tt_depth >= depth:
             if tt_flag == 0: # EXACT
-                return tt_score, tt_move, accumulator
+                return tt_score, tt_move
             elif tt_flag == 1: # ALPHA
                 beta = min(beta, tt_score)
             elif tt_flag == 2: # BETA
                 alpha = max(alpha, tt_score)
             
             if alpha >= beta:
-                return tt_score, tt_move, accumulator
+                return tt_score, tt_move
 
     # --- 2. CONDITION D'ARRÊT ---
     if board.is_game_over() or depth == 0:
         # (Utilisez votre fonction predict_fast optimisée ici)
-        score = predict_fast(accumulator, weights, biases)
-        if board.turn == chess.BLACK: score = 1.0 - score
-        return score, None, accumulator
+        stockfish.set_fen_position(board.fen())
+        # get_static_eval() peut retourner None si l'évaluation n'est pas disponible.
+        # On ajoute un fallback sur get_evaluation() et on normalise les centipawns
+        score = stockfish.get_static_eval()
+        if score is None:
+            ev = None
+            try:
+                ev = stockfish.get_evaluation()
+            except Exception:
+                ev = None
 
-    if accumulator is None:
-        accumulator = generate_accumulator(board, W1, b1) # Génère l'accumulateur pour la position actuelle
+            if ev is None:
+                # Pas d'évaluation disponible : on retourne une valeur neutre (0.5)
+                score = 0.5
+            else:
+                # ev attendu sous forme de dict {'type':'cp'|'mate', 'value':int}
+                if isinstance(ev, dict):
+                    if ev.get('type') == 'mate':
+                        # mate positif -> très avantageux, négatif -> très désavantageux
+                        cp = 100000 if ev.get('value', 0) > 0 else -100000
+                    else:
+                        cp = ev.get('value', 0)
+                else:
+                    # Si l'API a renvoyé un simple nombre
+                    try:
+                        cp = float(ev)
+                    except Exception:
+                        cp = 0.0
+
+                # Convertir centipawns en probabilité [0,1] via une sigmoid (échelle empiriques)
+                score = 1.0 / (1.0 + np.exp(-cp / 400.0))
+
+        if board.turn == chess.BLACK:
+            score = 1.0 - score
+
+        return score, None
 
     # --- 3. TRI DES COUPS ---
     legal_moves = list(board.legal_moves)
@@ -101,9 +133,8 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumul
     best_eval = float('-inf') if board.turn == chess.WHITE else float('inf')
 
     for move in legal_moves:
-        _accumulator = push_move_on_accumulator(accumulator, move, board, W1) # Met à jour l'accumulateur pour ce coup
         board.push(move)
-        eval_val, _, accumulator = minimax(board, depth - 1, alpha, beta, ply + 1, _accumulator)
+        eval_val, _ = minimax(board, depth - 1, alpha, beta, ply + 1)
         board.pop()
 
         if board.turn == chess.WHITE:
@@ -142,7 +173,7 @@ def minimax(board, depth, alpha=float('-inf'), beta=float('inf'), ply=0, accumul
         
     transposition_table[board_hash] = (depth, best_eval, flag, best_move)
     
-    return best_eval, best_move, accumulator
+    return best_eval, best_move
     
 def get_move_priority(board, move, depth, ply, hash_move):
     # 1. Le coup de la Table de Transposition (Priorité absolue)
@@ -215,149 +246,4 @@ def get_active_indices(board):
 
     return us_indices, them_indices
 
-def generate_accumulator(board, W1, b1):
-    us_indices = []
-    them_indices = []
-    is_w = board.turn == chess.WHITE
-
-    # 1. Trouver les rois
-    wking_sq = board.king(chess.WHITE)
-    bking_sq = board.king(chess.BLACK)
-    
-    # Si un roi manque (peut arriver dans des variantes ou tests), on gère ou on ignore.
-    if wking_sq is None or bking_sq is None:
-        return [], []
-
-    wking_base = wking_sq * 640
-    # Miroir vertical pour le roi noir
-    bking_base = (bking_sq ^ 56) * 640 
-
-    # 2. Parcourir les pièces
-    for sq, piece in board.piece_map().items():
-        if piece.piece_type == chess.KING:
-            continue
-            
-        iw = piece.color == chess.WHITE
-        pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-        
-        # Caractéristique point de vue Blanc
-        feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + sq
-        # Caractéristique point de vue Noir (miroir vertical)
-        feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (sq ^ 56)
-        
-        if is_w:
-            us_indices.append(feat_w)
-            them_indices.append(feat_b)
-        else:
-            us_indices.append(feat_b)
-            them_indices.append(feat_w)
-    Z1_us = np.sum(W1[us_indices], axis=0) + b1
-    Z1_them = np.sum(W1[them_indices], axis=0) + b1
-    return [Z1_us, Z1_them]
-
-def push_move_on_accumulator(accumulator, move: chess.Move, board: chess.Board, W1):
-    is_w = board.turn == chess.WHITE
-    wking_sq = board.king(chess.WHITE)
-    bking_sq = board.king(chess.BLACK)
-
-    wking_base = wking_sq * 640
-    bking_base = (bking_sq ^ 56) * 640 
-        
-    if move.from_square:
-        piece = board.piece_at(move.from_square)
-        if piece:
-            if piece.piece_type == chess.KING:
-                return accumulator # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-                
-            iw = piece.color == chess.WHITE
-            pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-            
-            # Caractéristique point de vue Blanc
-            feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + move.from_square
-            # Caractéristique point de vue Noir (miroir vertical)
-            feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (move.from_square ^ 56)
-            
-            if is_w:
-                accumulator[0] -= W1[feat_w] 
-                accumulator[1] -= W1[feat_b]
-            else:
-                accumulator[0] -= W1[feat_b]
-                accumulator[1] -= W1[feat_w]
-                
-    if move.to_square:
-        piece = board.piece_at(move.from_square)
-        if piece:
-            if piece.piece_type == chess.KING:
-                return accumulator # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-                
-            iw = piece.color == chess.WHITE
-            pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-            
-            # Caractéristique point de vue Blanc
-            feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + move.to_square
-            # Caractéristique point de vue Noir (miroir vertical)
-            feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (move.to_square ^ 56)
-            
-            if is_w:
-                accumulator[0] += W1[feat_w] 
-                accumulator[1] += W1[feat_b]
-            else:
-                accumulator[0] += W1[feat_b]
-                accumulator[1] += W1[feat_w]
-                
-                
-    if board.is_capture(move):
-        piece = board.piece_at(move.to_square)
-        if piece:
-            if piece.piece_type == chess.KING:
-                return accumulator # Le roi ne change pas d'indice, on peut juste retourner l'accumulateur tel quel
-                
-            iw = piece.color == chess.WHITE
-            pt = piece.piece_type - 1 # Pion=0, Cavalier=1, etc.
-            
-            # Caractéristique point de vue Blanc
-            feat_w = wking_base + ((0 if iw else 5) + pt) * 64 + move.to_square
-            # Caractéristique point de vue Noir (miroir vertical)
-            feat_b = bking_base + ((0 if not iw else 5) + pt) * 64 + (move.to_square ^ 56)
-            
-            if is_w:
-                accumulator[0] -= W1[feat_w] 
-                accumulator[1] -= W1[feat_b]
-            else:
-                accumulator[0] -= W1[feat_b]
-                accumulator[1] -= W1[feat_w]
-                
-    return accumulator
-    
-
-
-
-def predict_fast(accumulator, weights, biases):
-    """
-    Évaluation hyper-rapide par indexation directe (somme des lignes).
-    Plus besoin de scipy.sparse.
-    """
-    W1, W2, W3, W4 = weights
-    b1, b2, b3, b4 = biases
-
-    # Au lieu de multiplier une matrice creuse, on somme juste les lignes de W1
-    # correspondant aux caractéristiques actives. C'est O(N_pieces).
-    Z1_us, Z1_them = accumulator
-
-    A1_us = Leaky_Clipped_ReLU(Z1_us)
-    A1_them = Leaky_Clipped_ReLU(Z1_them)
-    
-    A1 = np.concatenate([A1_us, A1_them], axis=1) # concaténation 1D
-    
-    Z2 = np.dot(A1, W2) + b2
-    A2 = Leaky_ReLU(Z2)
-    
-    Z3 = np.dot(A2, W3) + b3
-    A3 = Leaky_ReLU(Z3)
-    
-    Z4 = np.dot(A3, W4) + b4
-    
-    # Sigmoide simplifiée pour un seul scalaire
-    x = max(min(Z4[0], 500), -500)
-    return 1 / (1 + np.exp(-x))
     

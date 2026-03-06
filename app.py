@@ -2,7 +2,10 @@ from flask import Flask,session,jsonify, render_template
 import chess
 import chess.svg
 import model
-
+import stockfish_model as st_model
+from stockfish import Stockfish
+st = Stockfish(path="C:/Users/yount/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe")
+st.set_elo_rating(1600)
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for using sessions
 
@@ -27,6 +30,10 @@ def square_to_html_id(square):
 def index():
     return render_template("index.html")
 
+@app.route("/ai")
+def ai():
+    return render_template("ai.html")
+
 @app.route("/init_game")
 def init_game():
     board = chess.Board()
@@ -41,7 +48,7 @@ def get_legal_moves(piece_id):
     return jsonify({"legal_moves": legal_moves})
 
 @app.route("/make_move/<from_square_id>/<to_square_id>")
-def make_move(from_square_id, to_square_id):
+def make_move(from_square_id, to_square_id): 
     board = chess.Board(session.get('board', chess.STARTING_FEN))  # Retrieve the board state from the session
     from_square = html_id_to_square(from_square_id)
     to_square = html_id_to_square(to_square_id)
@@ -51,11 +58,35 @@ def make_move(from_square_id, to_square_id):
     
     if move:
         board.push(move)  # Make the move on the board
-        
+        if board.is_game_over():
+            result = board.result()
+            session['board'] = chess.Board().fen()  # Reset the board state in the session
+            return jsonify({"message": f"Game over: {result}", "board": board_to_matrice(board)})
         session['board'] = board.fen()  # Update the board state in the session
         return jsonify({"message": "Move made", "board": board_to_matrice(board)})
     else:
         return jsonify({"message": "Illegal move"}), 400
+    
+@app.route("/stockfish_move")
+def stockfish_move():
+    board = chess.Board(session.get('board', chess.STARTING_FEN))  # Retrieve the board state from the session
+    
+    if board.turn == chess.WHITE: 
+        ## IA joue
+        # _, best_move = st_model.minimax(board, depth=4)  # Ajustez la profondeur selon vos besoins
+
+        st.set_fen_position(board.fen())
+        best_move = st.get_best_move()
+        board.push(chess.Move.from_uci(best_move))  # L'IA joue son meilleur coup    
+        if board.is_game_over():
+            result = board.result()
+            session['board'] = chess.Board().fen()  # Reset the board state in the session
+            return jsonify({"message": f"Game over: {result}", "board": board_to_matrice(board)})
+        
+        session['board'] = board.fen()  # Update the board state in the session
+        return jsonify({"message": "Move made", "board": board_to_matrice(board)})
+    else:
+        return jsonify({"message": "Not AI turn"}), 400
 
 @app.route("/ai_move")
 def ai_move():
@@ -63,9 +94,12 @@ def ai_move():
     
     if board.turn == chess.BLACK: 
         ## IA joue
-        _, best_move = model.minimax(board, depth=4)  # Ajustez la profondeur selon vos besoins
+        _, best_move, acc = model.minimax(board, depth=7)  # Ajustez la profondeur selon vos besoins
         board.push(best_move)  # L'IA joue son meilleur coup    
-
+        if board.is_game_over():
+            result = board.result()
+            session['board'] = chess.Board().fen()  # Reset the board state in the session
+            return jsonify({"message": f"Game over: {result}", "board": board_to_matrice(board)})
         
         session['board'] = board.fen()  # Update the board state in the session
         return jsonify({"message": "Move made", "board": board_to_matrice(board)})

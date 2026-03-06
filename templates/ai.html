@@ -36,6 +36,7 @@
                     }
                 }
             }
+            next_move();
         });
     </script>
     <script>
@@ -43,6 +44,49 @@
             for (let i = 0; i < 64; i++) {
                 document.getElementById(i).classList.remove('small-gray-circle');
             }
+        }
+
+        function next_move() {
+            document.getElementById("turn").innerText = "AI's Turn";
+            fetch('/stockfish_move').then(r => r.json()).then(d => {
+                document.getElementById("turn").innerText = "Your Turn";
+                resetBoard();
+                for (const [i, row] of d.board.entries()) {
+                    for (const [j, cell] of row.entries()) {
+                        if (cell !== 0) {
+                            document.getElementById(i * 8 + j).setHTMLUnsafe(cell);
+                        } else {
+                            document.getElementById(i * 8 + j).innerHTML = "";
+                        }
+                    }
+                }
+
+                if (d.message.startsWith("Game over")) {
+                    document.getElementById("turn").innerText = d.message;
+                    return;
+                } else {
+                    fetch('/ai_move').then(r => r.json()).then(d => {
+                        document.getElementById("turn").innerText = "Your Turn";
+                        resetBoard();
+                        for (const [i, row] of d.board.entries()) {
+                            for (const [j, cell] of row.entries()) {
+                                if (cell !== 0) {
+                                    document.getElementById(i * 8 + j).setHTMLUnsafe(cell);
+                                } else {
+                                    document.getElementById(i * 8 + j).innerHTML = "";
+                                }
+                            }
+                        }
+
+                        if (d.message.startsWith("Game over")) {
+                            document.getElementById("turn").innerText = d.message;
+                            return;
+                        } else {
+                            next_move();
+                        }
+                    });
+                }
+            });
         }
 
         var currentPiece = null;
@@ -130,16 +174,6 @@
                 currentPiece = null;
                 return;
             }
-            // console.log(piece.id);
-            // fetch('/get_legal_moves/' + piece.id).then(r => r.json()).then(d => {
-            //     resetBoard();
-            //     for (const move of d.legal_moves) {
-            //         console.log(move);
-
-            //         document.getElementById(move[1]).classList.add('small-gray-circle');
-            //     }
-            // });
-
         }
     </script>
     <h1 id="turn">Your Turn</h1>
@@ -147,9 +181,9 @@
     <div class="flex">
         {% for j in range(8) %}
         {% if (i + j) % 2 == 0 %}
-        <div class="w-16 h-16 bg-gray-300 " id={{ i * 8 + j }} onclick="setCurrentPiece(this)"></div>
+        <div class="w-16 h-16 bg-gray-300 " id={{ i * 8 + j }}></div>
         {% else %}
-        <div class="w-16 h-16 bg-gray-700 " id={{ i * 8 + j }} onclick="setCurrentPiece(this)"></div>
+        <div class="w-16 h-16 bg-gray-700 " id={{ i * 8 + j }}></div>
         {% endif %}
         {% endfor %}
     </div>
