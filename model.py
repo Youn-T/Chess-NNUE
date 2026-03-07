@@ -126,11 +126,11 @@ def backward_pass(X_us, X_them, y, activations, zs, weights):
 
 # --- CHARGEMENT DATASET ---
 # Labels restent en RAM CPU (52 MB)
-labels_cpu = np.load('labels_halfKP_V4.npz')["Y"]
+labels_cpu = np.load('labels_halfKP_V4.5.npz')["Y"]
 
 # Matrices sparse en float16 sur CPU (~986 MB chacune au lieu de 1972 MB)
-matrix_us_cpu = sparse.load_npz('moves_halfKP_V4_us.npz').astype(np.bool)
-matrix_them_cpu = sparse.load_npz('moves_halfKP_V4_them.npz').astype(np.bool)
+matrix_us_cpu = sparse.load_npz('moves_halfKP_V4.5_us.npz').astype(np.bool)
+matrix_them_cpu = sparse.load_npz('moves_halfKP_V4.5_them.npz').astype(np.bool)
 
 num_samples = matrix_us_cpu.shape[0]
 print(f"Dataset: {num_samples:,} samples, sparse float16 sur CPU")
@@ -215,5 +215,5 @@ for epoch in range(EPOCHS):
     elapsed = time.perf_counter() - t0
     print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f}, Temps écoulé: {elapsed:.2f}s ---")
 
-cp.savez('model_halfKP_V4.5.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
-print("Modèle sauvegardé sous 'model_halfKP_V4.5.npz'")
+cp.savez('model_halfKP_V4.5_2.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
+print("Modèle sauvegardé sous 'model_halfKP_V4.5_2.npz'")
