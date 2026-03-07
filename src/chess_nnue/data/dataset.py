@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 import time
-from pathlib import Path
-import config
+import src.chess_nnue.config as config
 
 CHUNK_SIZE = 500_000
 SCALING_FACTOR = 75
