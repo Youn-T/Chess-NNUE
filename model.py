@@ -56,7 +56,7 @@ def bce_loss_fused(y, a):
 # --- INITIALISATION DES POIDS (He Initialization) ---
 W1 = cp.random.randn(INPUT_COUNT, LAYER_1_SIZE) * cp.sqrt(2.0 / 32.0)
 b1 = cp.zeros((1, LAYER_1_SIZE))
-W2 = cp.random.randn(LAYER_1_SIZE, LAYER_2_SIZE) * cp.sqrt(2.0 / LAYER_1_SIZE)
+W2 = cp.random.randn(LAYER_1_SIZE * 2, LAYER_2_SIZE) * cp.sqrt(2.0 / LAYER_1_SIZE)
 b2 = cp.zeros((1, LAYER_2_SIZE))
 W3 = cp.random.randn(LAYER_2_SIZE, LAYER_3_SIZE) * cp.sqrt(2.0 / LAYER_2_SIZE)
 b3 = cp.zeros((1, LAYER_3_SIZE))
@@ -79,7 +79,7 @@ def forward_pass(X_us, X_them, weights, biases):
     Z1_them = X_them.dot(W1) + b1
     A1_them = Leaky_Clipped_ReLU(Z1_them)
     
-    A1 = A1_us - A1_them  # Fusionne les deux perspectives (addition simple, comme Stockfish NNUE)
+    A1 = cp.concatenate([A1_us, A1_them], axis=1)
     
     Z2 = cp.dot(A1, W2) + b2
     A2 = Leaky_ReLU(Z2)
@@ -115,8 +115,11 @@ def backward_pass(X_us, X_them, y, activations, zs, weights):
 
     dA1 = cp.dot(dZ2, W2.T)
     
-    dZ1_us = dA1 * Leaky_Clipped_ReLU_derivative(Z1_us)
-    dZ1_them = -dA1 * Leaky_Clipped_ReLU_derivative(Z1_them)
+    dA1_us = dA1[:, :LAYER_1_SIZE]
+    dZ1_us = dA1_us * Leaky_Clipped_ReLU_derivative(Z1_us)
+    
+    dA1_them = dA1[:, LAYER_1_SIZE:]
+    dZ1_them = dA1_them * Leaky_Clipped_ReLU_derivative(Z1_them)
     
     # 2 sparse .T.dot() séparées (CSC implicite, PAS de conversion CSR)
     dW1 = (X_us.T.dot(dZ1_us) + X_them.T.dot(dZ1_them)) / m
@@ -126,11 +129,11 @@ def backward_pass(X_us, X_them, y, activations, zs, weights):
 
 # --- CHARGEMENT DATASET ---
 # Labels restent en RAM CPU (52 MB)
-labels_cpu = np.load('labels_halfKP_V4.5.npz')["Y"]
+labels_cpu = np.load('labels_halfKP_V4.npz')["Y"]
 
 # Matrices sparse en float16 sur CPU (~986 MB chacune au lieu de 1972 MB)
-matrix_us_cpu = sparse.load_npz('moves_halfKP_V4.5_us.npz').astype(np.bool)
-matrix_them_cpu = sparse.load_npz('moves_halfKP_V4.5_them.npz').astype(np.bool)
+matrix_us_cpu = sparse.load_npz('moves_halfKP_V4_us.npz').astype(np.bool)
+matrix_them_cpu = sparse.load_npz('moves_halfKP_V4_them.npz').astype(np.bool)
 
 num_samples = matrix_us_cpu.shape[0]
 print(f"Dataset: {num_samples:,} samples, sparse float16 sur CPU")
@@ -215,5 +218,5 @@ for epoch in range(EPOCHS):
     elapsed = time.perf_counter() - t0
     print(f"--- Fin Epoch {epoch}, Moyenne Loss: {total_loss / (len(indices)//BATCH_SIZE):.4f}, Temps écoulé: {elapsed:.2f}s ---")
 
-cp.savez('model_halfKP_V4.5_2.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
-print("Modèle sauvegardé sous 'model_halfKP_V4.5_2.npz'")
+cp.savez('model_halfKP_V4.npz', W1=W1, b1=b1, W2=W2, b2=b2, W3=W3, b3=b3, W4=W4, b4=b4)
+print("Modèle sauvegardé sous 'model_halfKP_V4.npz'")
