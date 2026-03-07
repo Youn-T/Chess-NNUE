@@ -3,18 +3,7 @@ import numpy as np
 from scipy import sparse
 import time
 from pathlib import Path
-
-# --- CONFIGURATION ---
-# Résolution robuste du chemin vers `chessData.csv` (dossier parent du script)
-BASE_DIR = Path(__file__).resolve().parent.parent
-_candidate = BASE_DIR / 'chessData.csv'
-if not _candidate.exists():
-    _candidate = Path.cwd() / 'chessData.csv'
-if not _candidate.exists():
-    raise FileNotFoundError(
-        f"chessData.csv introuvable. Recherché: {BASE_DIR / 'chessData.csv'} and {Path.cwd() / 'chessData.csv'}"
-    )
-FILE_PATH = str(_candidate)
+import config
 
 CHUNK_SIZE = 500_000
 SCALING_FACTOR = 75
@@ -122,7 +111,7 @@ all_labels   = []
 total = 0
 
 print("Début du traitement HalfKP optimisé (deux perspectives)...")
-reader = pd.read_csv(FILE_PATH, chunksize=CHUNK_SIZE)
+reader = pd.read_csv(config.RAW_DATASET_DIR, chunksize=CHUNK_SIZE)
 
 for chunk in reader:
     (mat_us, mat_them), labels = process_chunk_halfkp(chunk['FEN'].values, chunk['Evaluation'].values)
@@ -139,9 +128,9 @@ final_moves_us = sparse.vstack(all_sparse_w, format='csr')
 final_moves_them = sparse.vstack(all_sparse_b, format='csr')
 final_labels  = np.concatenate(all_labels)
 
-sparse.save_npz('moves_halfKP_V4_us.npz', final_moves_us)
-sparse.save_npz('moves_halfKP_V4_them.npz', final_moves_them)
-np.savez('labels_halfKP_V4.npz', Y=final_labels)
+sparse.save_npz(config.MOVES_US_DIR, final_moves_us)
+sparse.save_npz(config.MOVES_THEM_DIR, final_moves_them)
+np.savez(config.LABELS_DIR, Y=final_labels)
 
 dt = time.perf_counter() - t0
 print(f"\nTerminé ! {final_moves_us.shape[0]:,} positions ({HALFKP_DIM} features) en {dt:.1f}s ({final_moves_us.shape[0]/dt:,.0f} pos/s)")
