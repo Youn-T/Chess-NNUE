@@ -87,7 +87,12 @@ class NNUE:
             'A4': A4
         }
         
-        return activation
+        zs = {
+            'Z1_us': Z1_us,
+            'Z1_them': Z1_them
+        }
+        
+        return activation, zs
     
-    def backward_pass(self):
+    def backward_pass(self, X_us, X_them, Y, activations, zs):
         pass
