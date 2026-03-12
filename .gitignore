@@ -1,3 +1,7 @@
 /.vscode
 /__pycache__
 /src/chess_nnue/deprecated/
+/src/chess_nnue/__pycache__/
+/tests/__pycache__/
+/notebooks/test.ipynb
+/src/chess_NNUE.egg-info
