@@ -33,10 +33,10 @@ class NNUE:
             'W2': cp.random.randn(L1 * 2, L2) * cp.sqrt( 2.0 / L1 ),
             'W3': cp.random.randn(L2, L3) * cp.sqrt( 2.0 / L2 ),
             'W4': cp.random.randn(L3, 1) * cp.sqrt( 2.0 / L3 ),
-            'b1': cp.random.randn(1, L1),
-            'b2': cp.random.randn(1, L2),
-            'b3': cp.random.randn(1, L3),
-            'b4': cp.random.randn(1, 1)
+            'b1': cp.zeros((1, L1)),
+            'b2': cp.zeros((1, L2)),
+            'b3': cp.zeros((1, L3)),
+            'b4': cp.zeros((1, 1))
         }
         
         self.grads = { k : cp.zeros_like(v) for k, v in self.params.items() }
@@ -57,7 +57,7 @@ class NNUE:
             
         Returns
         -------
-            activation: dict[str, cupy.ndarray]
+            activations: dict[str, cupy.ndarray]
                 A dictionary with the four activation matrices (A1, A2, A3, A4), useful for backward pass
                 
         Note
@@ -82,7 +82,7 @@ class NNUE:
         Z4 = cp.dot(A3, self.params['W4']) + self.params['b4']
         A4 = Utils.Sigmoid(Z4)
         
-        activation = {
+        activations = {
             'A1': A1,
             'A2': A2,
             'A3': A3,
@@ -96,7 +96,7 @@ class NNUE:
             'Z3': Z3
         }
         
-        return activation, zs
+        return activations, zs
     
     def backward_pass(self, X_us, X_them, Y, activations, zs):
         """Updates the model's gradients
@@ -142,8 +142,8 @@ class NNUE:
         d1_us = d1[:,:half] * Utils.Leaky_Clipped_ReLU_derivative(Z1_us)
         d1_them = d1[:,half:] * Utils.Leaky_Clipped_ReLU_derivative(Z1_them)
         
-        dW1_us = cp.dot(X_us.T, d1_us)
-        dW1_them = cp.dot(X_them.T, d1_them)
+        dW1_us = X_us.T.dot(d1_us)
+        dW1_them = X_them.T.dot(d1_them)
         
         db1_us = cp.sum(d1_us, axis=0, keepdims=True)
         db1_them = cp.sum(d1_them, axis=0, keepdims=True)
